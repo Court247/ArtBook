@@ -33,6 +33,10 @@ migrate_working_dir/
 .pub/
 /build/
 
+# Ignore all .env files in the project
+*.env
+mobile/.env
+
 # Symbolication related
 app.*.symbols
 

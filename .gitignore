@@ -70,7 +70,8 @@ mobile/ios/Flutter/Flutter.podspec
 mobile/ios/Flutter/Generated.xcconfig
 mobile/ios/.symlinks/
 mobile/ios/.generated/
-
+*.env
+mobile/.env
 # ===============================
 # 🔐 Firebase Keys & Private Files
 # ===============================

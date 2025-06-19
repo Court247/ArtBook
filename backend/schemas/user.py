@@ -18,6 +18,7 @@ class UserResponse(BaseModel):
     display_name: Optional[str]
     bio: Optional[str]
     avatar_url: Optional[str]
+    is_admin: Optional[bool] = False  # 👈 add this
 
     class Config:
         orm_mode = True

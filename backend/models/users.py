@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, DateTime
+from sqlalchemy import Column, Integer, String, DateTime, Boolean
 from db.database import Base
 from datetime import datetime
 
@@ -11,4 +11,5 @@ class User(Base):
     display_name = Column(String(255), nullable=True)
     bio = Column(String, nullable=True)
     avatar_url = Column(String, nullable=True)
+    is_admin = Column(Boolean, default=False)  # 👈 add this line
     created_at = Column(DateTime, default=datetime.utcnow)

@@ -4,3 +4,5 @@ sqlalchemy
 pymysql
 firebase-admin
 python-dotenv
+mysqlclient
+pymysql
