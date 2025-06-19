@@ -30,6 +30,7 @@ backend/build/
 backend/*.egg-info/
 backend/.mypy_cache/
 backend/.coverage
+backend/artbook-20329-firebase-adminsdk-fbsvc-ddbc5c06ca.json
 
 # ===============================
 # 🌐 WEB (React/Node.js)
@@ -74,4 +75,7 @@ mobile/ios/.generated/
 # 🔐 Firebase Keys & Private Files
 # ===============================
 
-**/firebase-service-account.j**
+**/firebase-service-account.j*
+mobile/lib/firebase_options.dart
+mobile/ios/Runner/GoogleService-Info.plist
+mobile/android/app/google-services.json
