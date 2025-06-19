@@ -1,4 +1,5 @@
-# 🌐 ArtBook (Monorepo)
+# 🌐 ArtBook (Monorepo) ![version](https://img.shields.io/badge/version-0.1.0-blue)
+
 
 A full-stack, cross-platform social media application built with:
 
@@ -142,7 +143,7 @@ flutter run
 ```
 ## ✅ License
 
-All rights reserved. You may not use, copy, distribute, or modify any part of this code without express written permission from the author. See LICENSE.txt for full terms.
+All rights reserved. You may not use, copy, distribute, or modify any part of this code without express written permission from the author. See [LICENSE.txt](./LICENSE.txt) for full terms.
 
 # Author
 
