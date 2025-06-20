@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.0.1] - 2025-06-19
+## [1.0.2] - 2025-06-19
 ### Changed
 - Updated Android app build configuration to use Java 17 for compatibility with newer Java versions (`mobile/android/app/build.gradle.kts`).
 - Added and updated `.gitignore` entries to ensure all sensitive Firebase config and service account files are ignored, including:
@@ -19,12 +19,12 @@ All notable changes to this project will be documented in this file.
         - `comment.py`
         - `like.py`
         - `post.py`
-  - `backend/routers/` (list specific files if known)
+  - `backend/routers/` 
         - `comment.py`
         - `like.py`
         - `post.py`
         - `admin.py`
-  - `backend/schemas/` (list specific files if known)
+  - `backend/schemas/` 
         - `comment.py`
         - `like.py`
         - `post.py`
@@ -34,7 +34,19 @@ All notable changes to this project will be documented in this file.
   - `CHANGELOG.md` (created and updated)
   - `backend/models/users.py`
   - `db/schema.sql`
+  - `README.md` 
 - Successfully completed set up for ArtBook FastAPI backend
+- Set up the web environment. 
+- Added new web files:
+  - `components/`
+    - `PrivateRoute.jsx`
+    - `Spinner.jsx`
+  - `pages/`
+    - `CreateAccount.jsx`
+    - `HomePage.jsx`
+    - `LoginPage.jsx`
+
+
 ---
 
 ## [1.0.0] - 2025-06-19

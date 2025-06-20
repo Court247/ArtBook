@@ -91,7 +91,7 @@ These define your MySQL table structure in Python using SQLAlchemy ORM.
 ---
 
 ### 📂 schemas/ — Pydantic Schemas
-These define input and output shapes for API endpoints. They validate incoming request bodies and control what fields are returned in responses.
+These define input and output shapes for API endpoints. They validate incoming request bodies and control what fields are returned in responses. Each schema works alongside its corresponding model and router to ensure data is clean and consistent across the API.
 
 | File         | Purpose                                                                        |
 | ------------ | ------------------------------------------------------------------------------ |
@@ -100,17 +100,17 @@ These define input and output shapes for API endpoints. They validate incoming r
 | `comment.py` | Models comment creation and response formatting.                               |
 | `like.py`    | Controls response structure when liking a post or retrieving like info.        |
 
-Each schema works alongside its corresponding model and router to ensure data is clean and consistent across the API.
+
 ---
 ### 📂 utils/ — Utility Functions
-This folder contains reusable backend utilities that support your main API logic.
+This folder contains reusable backend utilities that support your main API logic. Use these to keep your main routers/ and main.py files clean and maintainable.
+
 
 | File               | Purpose                                                                                   |
 | ------------------ | ----------------------------------------------------------------------------------------- |
 | `firebase_auth.py` | Initializes Firebase Admin SDK and verifies user ID tokens. Required for authentication.  |
 | `image_upload.py`  | Uploads image files to Firebase Storage and returns public download URLs (used in posts). |
 
-Use these to keep your main routers/ and main.py files clean and maintainable.
 ---
 
 ### 🗄️ db/ — Database Connection Layer
@@ -156,7 +156,7 @@ This project uses a relational schema:
 - `comments`: Replies on posts
 - `followers`: User ↔ user follows
 
-See `/backend/db/schema.sql` (coming soon) for full schema.
+See `/backend/db/schema.sql` for full schema.
 
 ---
 
@@ -169,7 +169,6 @@ python -m venv venv
 source venv/bin/activate # Linux
 .\env\Scripts\activate   # Windows
 pip install -r requirements.txt 
-cp .env.example .env
 
 # Set DATABASE_URL and Firebase path in .env
 uvicorn main:app --reload
@@ -190,18 +189,40 @@ flutter run
 ```
 ## 🌍 API Endpoints (FastAPI)
 
-```bash
-| Method | Endpoint               | Description                  |
-| ------ | ---------------------- | ---------------------------- |
-| POST   | `/auth/verify-token`   | Verifies Firebase ID token   |
-| GET    | `/users/me`            | Get logged-in user info      |
-| POST   | `/posts/create`        | Create new post with caption |
-| GET    | `/posts/feed`          | Get user feed                |
-| POST   | `/posts/{id}/like`     | Like/unlike a post           |
-| POST   | `/posts/{id}/comments` | Comment on a post            |
-| POST   | `/follow/{user_id}`    | Follow or unfollow a user    |
+### 🔐 Auth + User Endpoints
 
-```
+| Method | Endpoint             | Description                |
+| ------ | -------------------- | -------------------------- |
+| POST   | `/auth/verify-token` | Verifies Firebase ID token |
+| GET    | `/users/me`          | Get logged-in user profile |
+
+###📝 Post Endpoints
+
+| Method | Endpoint               | Description                                 |
+| ------ | ---------------------- | ------------------------------------------- |
+| POST   | `/posts/create`        | Create a new post (caption + image)         |
+| GET    | `/posts/feed`          | Get feed (recent posts from followed users) |
+| POST   | `/posts/{id}/like`     | Like or unlike a post                       |
+| POST   | `/posts/{id}/comments` | Add a comment to a post                     |
+| POST   | `/posts/{id}/flag`     | Flag a post for admin review                |
+
+###👥 Social (Follow) Endpoints
+
+| Method | Endpoint            | Description               |
+| ------ | ------------------- | ------------------------- |
+| POST   | `/follow/{user_id}` | Follow or unfollow a user |
+
+###🛡️ Admin Endpoints (Firebase Admins Only)
+
+| Method | Endpoint                 | Description              |
+| ------ | ------------------------ | ------------------------ |
+| GET    | `/admin/dashboard`       | Test admin access        |
+| GET    | `/admin/users`           | Get all registered users |
+| DELETE | `/admin/users/{user_id}` | Delete a user            |
+| GET    | `/admin/posts`           | Get all posts            |
+| GET    | `/admin/flagged-posts`   | Get all flagged posts    |
+| DELETE | `/admin/posts/{post_id}` | Delete a post            |
+
 ## ✅ License
 
 All rights reserved. You may not use, copy, distribute, or modify any part of this code without express written permission from the author. See [LICENSE.txt](./LICENSE.txt) for full terms.

@@ -5,7 +5,7 @@ from routers import users, posts, comments, likes, admin
 
 app = FastAPI(
     title="ArtBook",
-    version="1.0.0",
+    version="1.0.2",
     description="Backend API for a cross-platform social media app using FastAPI, MySQL, and Firebase."
 )
 
