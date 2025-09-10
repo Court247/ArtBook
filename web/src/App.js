@@ -3,7 +3,8 @@ import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-d
 import LoginPage from "./pages/LoginPage";
 import HomePage from "./pages/HomePage";
 import PrivateRoute from "./components/PrivateRoute";
-import CreateAccount from "./pages/CreateAccount";
+import Register from "./pages/Register";
+import AdminPage from "./pages/AdminPage"; // Make sure this import exists
 
 export default function App() {
   return (
@@ -11,8 +12,9 @@ export default function App() {
       <Routes>
         <Route path="/" element={<LoginPage />} />
         <Route path="/login" element={<LoginPage />} />
-        <Route path="/createaccount" element={<CreateAccount />} />
+        <Route path="/register" element={<Register />} />
         <Route path="/home" element={<PrivateRoute><HomePage /></PrivateRoute>} />
+        <Route path="/admin" element={<PrivateRoute><AdminPage /></PrivateRoute>} /> {/* Wrapped with PrivateRoute */}
         {/* Redirect any unknown routes to login */}
         <Route path="*" element={<Navigate to="/login" replace />} />
       </Routes>

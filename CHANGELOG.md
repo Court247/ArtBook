@@ -2,6 +2,23 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.3] - 2025-06-20
+### Added
+- Created `web/src/pages/Register.jsx` for user registration page.
+
+### Changed
+- Ensured consistent casing for `LoginPage.jsx` across all imports and file names in the React frontend.
+- Cleaned up old references to `Loginpage.jsx` (lowercase "p") to prevent import errors.
+- Updated project structure documentation in `README.md` for clarity and accuracy.
+- Changed Firebase configuration setup instructions in `README.md` to use environment variables for added security.
+- Updated backend dependency versions in `backend/requirements.txt` to latest compatible versions.
+- Changed database initialization script to handle existing data more gracefully during development setup.
+- Updated `routers/comment.py`
+
+### Removed
+- removed `web/src/pages/CreateAccount.jsx`
+---
+
 ## [1.0.2] - 2025-06-19
 ### Changed
 - Updated Android app build configuration to use Java 17 for compatibility with newer Java versions (`mobile/android/app/build.gradle.kts`).
@@ -11,8 +28,19 @@ All notable changes to this project will be documented in this file.
   - `mobile/android/app/google-services.json`
   - `backend/artbook-20329-firebase-adminsdk-fbsvc-ddbc5c06ca.json`
   - `.env` files in relevant directories
-- Added `backend/VERSION` file to track backend version.
 - Created `CHANGELOG.md` to document project changes.
+- Changed files:
+  - `.gitignore` (updated to ignore new sensitive files)
+  - `mobile/android/app/build.gradle.kts` (updated Java version)
+  - `CHANGELOG.md` (created and updated)
+  - `backend/models/users.py`
+  - `db/schema.sql`
+  - `README.md` 
+- Successfully completed set up for ArtBook FastAPI backend
+- Set up the web environment. 
+
+### Added
+- Added `backend/VERSION` file to track backend version.
 - Created `web/.env` for React environment variables.
 - Added new backend files:
   - `backend/models/`
@@ -28,15 +56,6 @@ All notable changes to this project will be documented in this file.
         - `comment.py`
         - `like.py`
         - `post.py`
-- Changed files:
-  - `.gitignore` (updated to ignore new sensitive files)
-  - `mobile/android/app/build.gradle.kts` (updated Java version)
-  - `CHANGELOG.md` (created and updated)
-  - `backend/models/users.py`
-  - `db/schema.sql`
-  - `README.md` 
-- Successfully completed set up for ArtBook FastAPI backend
-- Set up the web environment. 
 - Added new web files:
   - `components/`
     - `PrivateRoute.jsx`

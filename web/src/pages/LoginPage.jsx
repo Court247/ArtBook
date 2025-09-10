@@ -16,7 +16,7 @@ export default function LoginPage() {
       localStorage.setItem("token", token);
       navigate("/home");
     } catch (err) {
-      alert("Login failed: " + err.message);
+      alert("User Not Found: ");
     }
   };
 
@@ -39,6 +39,12 @@ export default function LoginPage() {
       />
       <button onClick={handleLogin} className="w-full p-2 bg-blue-500 text-white rounded">
         Sign In
+      </button>
+      <button
+        onClick={() => navigate("/Register")}
+        className="w-full p-2 bg-blue-500 text-white rounded"
+      >
+        Register
       </button>
     </div>
   );

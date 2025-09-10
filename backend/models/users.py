@@ -1,6 +1,6 @@
-from sqlalchemy import Column, Integer, String, DateTime, Boolean
-from db.database import Base
+from sqlalchemy import Column, Integer, String, Boolean, DateTime
 from datetime import datetime
+from db.database import Base
 
 class User(Base):
     __tablename__ = "users"
@@ -9,7 +9,7 @@ class User(Base):
     firebase_uid = Column(String(128), unique=True, nullable=False)
     email = Column(String(255), unique=True, nullable=False)
     display_name = Column(String(255), nullable=True)
-    bio = Column(String, nullable=True)
-    avatar_url = Column(String, nullable=True)
-    is_admin = Column(Boolean, default=False)  # 👈 add this line
+    bio = Column(String, default="")
+    avatar_url = Column(String, default="")
+    is_admin = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow)

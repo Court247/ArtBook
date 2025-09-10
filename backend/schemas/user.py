@@ -16,9 +16,10 @@ class UserResponse(BaseModel):
     firebase_uid: str
     email: str
     display_name: Optional[str]
-    bio: Optional[str]
     avatar_url: Optional[str]
-    is_admin: Optional[bool] = False  # 👈 add this
+    bio: Optional[str]
+    is_admin: bool
 
     class Config:
         orm_mode = True
+        from_attributes = True

@@ -17,49 +17,60 @@ This project is built and maintained as a **monorepo** for easier management and
 ## 📁 Project Structure
 ```bash
 ArtBook/
-├── backend/                       # FastAPI backend
+├── backend/                         # FastAPI backend
 │   ├── main.py
 │   ├── requirements.txt
-│   ├── routers/
-│   │   ├── users.py
-│   │   ├── posts.py
-│   │   ├── comments.py
-│   │   ├── likes.py
-│   │   └── followers.py
-│   ├── models/
-│   │   ├── user.py
-│   │   ├── post.py
-│   │   └── ...
-│   ├── schemas/
-│   │   ├── user.py
-│   │   ├── post.py
-│   │   └── ...
+│   ├── VERSION
+│   ├── .env
+│   ├── artbook-20329-firebase-adminsdk-fbsvc-ddbc5c06ca.json  # (ignored)
 │   ├── db/
-│   │   └── database.py
+│   │   └── schema.sql
+│   ├── models/
+│   │   ├── comment.py
+│   │   ├── like.py
+│   │   ├── post.py
+│   │   └── users.py
+│   ├── routers/
+│   │   ├── admin.py
+│   │   ├── comment.py
+│   │   ├── like.py
+│   │   ├── post.py
+│   │   └── users.py
+│   ├── schemas/
+│   │   ├── comment.py
+│   │   ├── like.py
+│   │   ├── post.py
+│   │   └── user.py
 │   └── utils/
 │       ├── firebase_auth.py
 │       └── image_upload.py
 ├── web/                           # React Web Frontend
 │   ├── src/
 │   │   ├── components/
+│   │   │   ├── PrivateRoute.jsx
+│   │   │   └── Spinner.jsx
 │   │   ├── pages/
-│   │   ├── api/
-│   │   └── firebase.js
-│   ├── public/
+│   │   │   ├── CreateAccount.jsx
+│   │   │   ├── HomePage.jsx
+│   │   │   └── LoginPage.jsx
+│   │   ├── firebase.js
+│   │   └── App.js
 │   ├── .env
 │   └── package.json
 ├── mobile/                        # Flutter Mobile App
 │   ├── lib/
-│   │   ├── screens/
-│   │   ├── services/
 │   │   └── firebase_options.dart
 │   ├── android/
+│   │   └── app/
+│   │       └── google-services.json 
 │   ├── ios/
-│   └── pubspec.yaml
-├── shared/                        # Shared schemas/docs
-│   ├── openapi.json
-│   └── mock_data.json
+│   │   └── Runner/
+│   │       └── GoogleService-Info.plist 
+│   ├── pubspec.yaml
+│   ├── .env  
+│   └── analysis_options.yaml
 ├── README.md
+├── CHANGELOG.md
 └── .gitignore
 ```
 ---
@@ -126,7 +137,7 @@ This folder contains reusable backend utilities that support your main API logic
 |----------------|------------------------|
 | 🧠 Backend      | FastAPI (Python)       |
 | 🧮 Database     | MySQL                  |
-| 🧑‍💻 Web App     | React (JS)             |
+| 🧑‍💻 Web App      | React (JS)             |
 | 📱 Mobile App   | Flutter (Dart)         |
 | 🔐 Auth         | Firebase Auth          |
 | 🖼️ Media        | Firebase Storage       |
