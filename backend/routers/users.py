@@ -1,12 +1,10 @@
-from fastapi import APIRouter, Depends, Header, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from utils.firebase_auth import verify_token
+from datetime import datetime
+from utils.firebase_auth import get_token_payload
 from db.database import SessionLocal
 from models.users import User
-from schemas.user import UserResponse, UserUpdate
-from utils.firebase_auth import verify_token, require_admin
-from utils.firebase_auth import get_token_payload
-from schemas.user import UserCreate
+from schemas.user import UserResponse, UserUpdate, UserCreate
 
 router = APIRouter()
 
@@ -17,58 +15,102 @@ def get_db():
     finally:
         db.close()
 
-def get_current_user(auth_header: str = Header(...), db: Session = Depends(get_db)) -> User:
-    token = auth_header.replace("Bearer ", "")
-    payload = verify_token(token)
-    if not payload:
-        raise HTTPException(status_code=401, detail="Invalid Firebase token")
-    
+# single dependency: returns DB user after verifying token (no token->DB role sync)
+def get_current_user(
+    payload: dict = Depends(get_token_payload),
+    db: Session = Depends(get_db)
+) -> User:
     user = db.query(User).filter(User.firebase_uid == payload["uid"]).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     return user
 
-def read_current_user(
-    current_user: User = Depends(get_current_user),
-    auth_header: str = Header(...),
-):
-    token = auth_header.replace("Bearer ", "")
-    payload = verify_token(token)
-    is_admin = payload.get("admin", False)
+# Helper: load arbitrary user by id
+def get_user_or_404(user_id: int, db: Session):
+    target = db.query(User).filter(User.id == user_id).first()
+    if not target:
+        raise HTTPException(status_code=404, detail="Target user not found")
+    return target
 
-    response = UserResponse.from_orm(current_user)
-    response.is_admin = is_admin
-    return response
-
-@router.get("/me", response_model=UserResponse)
-def read_current_user(current_user: User = Depends(get_current_user)):
+# Helper: require creator role
+def require_creator(current_user: User = Depends(get_current_user)):
+    if not current_user.is_creator:
+        raise HTTPException(status_code=403, detail="Creator role required")
     return current_user
 
+@router.get("/me", response_model=UserResponse)
+def read_current_user(
+    current_user: User = Depends(get_current_user),
+):
+    # Use DB as source of truth for roles
+    response = UserResponse.from_orm(current_user)
+    response.is_admin = current_user.is_admin
+    response.is_creator = current_user.is_creator
+    return response
+
 @router.put("/me", response_model=UserResponse)
-def update_user(update: UserUpdate, current_user: User = Depends(get_current_user), db: Session = Depends(get_db)):
+def update_user(
+    update: UserUpdate,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    # Regular users cannot change role fields
+    allowed = {"display_name", "bio", "avatar_url"}
     for field, value in update.dict(exclude_unset=True).items():
-        setattr(current_user, field, value)
+        if field in allowed:
+            setattr(current_user, field, value)
     db.commit()
     db.refresh(current_user)
     return current_user
 
-# routers/users.py
-@router.get("/users/me")
-def get_my_profile(
-    payload: dict = Depends(get_token_payload),
+# Admin/creator endpoint to update any user (admins limited; creators full)
+@router.put("/users/{user_id}", response_model=UserResponse)
+def update_user_by_admin(
+    user_id: int,
+    update: UserUpdate,
+    current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    user = db.query(User).filter(User.firebase_uid == payload["uid"]).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found")
+    target = get_user_or_404(user_id, db)
 
-    # ✅ Sync admin claim with local DB
-    if payload.get("admin", False) and not user.is_admin:
-        user.is_admin = True
-        db.commit()
+    # Creator can edit everyone (including roles)
+    if current_user.is_creator:
+        allowed = {"display_name", "bio", "avatar_url", "is_admin", "is_creator"}
+    else:
+        # Non-creators must be admins to use this endpoint
+        if not current_user.is_admin:
+            raise HTTPException(status_code=403, detail="Admin role required")
+        # Admins cannot edit creators or other admins
+        if target.is_creator or target.is_admin:
+            raise HTTPException(status_code=403, detail="Cannot edit creators or admin users")
+        # Admins may edit non-role fields only
+        allowed = {"display_name", "bio", "avatar_url"}
 
-    return user
-@router.post("/users/create")
+    for field, value in update.dict(exclude_unset=True).items():
+        if field in allowed:
+            setattr(target, field, value)
+    db.commit()
+    db.refresh(target)
+    return target
+
+# Creator-only role management endpoint
+@router.put("/users/{user_id}/roles", response_model=UserResponse)
+def set_roles_by_creator(
+    user_id: int,
+    role_update: UserUpdate,
+    _: User = Depends(require_creator),
+    db: Session = Depends(get_db)
+):
+    target = get_user_or_404(user_id, db)
+    # Only allow role fields here
+    for field, value in role_update.dict(exclude_unset=True).items():
+        if field in {"is_admin", "is_creator"}:
+            setattr(target, field, value)
+    db.commit()
+    db.refresh(target)
+    return target
+
+@router.post("/users", response_model=UserResponse)
 def create_user_in_db(
     user_data: UserCreate,
     payload: dict = Depends(get_token_payload),
@@ -76,17 +118,20 @@ def create_user_in_db(
 ):
     existing_user = db.query(User).filter(User.firebase_uid == payload["uid"]).first()
     if existing_user:
-        return {"detail": "User already exists"}
+        raise HTTPException(status_code=400, detail="User already exists")
 
     new_user = User(
         firebase_uid=payload["uid"],
         email=user_data.email,
         display_name=user_data.display_name,
-        bio="",
-        avatar_url="",  # optional
-        is_admin=False
+        bio=user_data.bio or "",
+        avatar_url=user_data.avatar_url or "",
+        # Do NOT trust token claims for initial roles; default to False
+        is_admin=False,
+        created_at=user_data.created_at or datetime.utcnow(),
+        is_creator=False
     )
     db.add(new_user)
     db.commit()
     db.refresh(new_user)
-    return {"detail": "User created", "user_id": new_user.id}
+    return new_user

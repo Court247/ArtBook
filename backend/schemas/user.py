@@ -2,24 +2,25 @@ from pydantic import BaseModel
 from typing import Optional
 
 class UserCreate(BaseModel):
-    firebase_uid: str
+    display_name: str
     email: str
-    display_name: Optional[str] = None
+    bio: Optional[str] = None
+    avatar_url: Optional[str] = None
 
 class UserUpdate(BaseModel):
-    display_name: Optional[str]
-    bio: Optional[str]
-    avatar_url: Optional[str]
+    display_name: Optional[str] = None
+    bio: Optional[str] = None
+    avatar_url: Optional[str] = None
 
 class UserResponse(BaseModel):
     id: int
     firebase_uid: str
+    display_name: str
     email: str
-    display_name: Optional[str]
-    avatar_url: Optional[str]
-    bio: Optional[str]
-    is_admin: bool
+    avatar_url: Optional[str] = None
+    bio: Optional[str] = None
+    is_admin: bool = False
+    is_creator: bool = False
 
     class Config:
         orm_mode = True
-        from_attributes = True

@@ -2,6 +2,87 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.5] - 2025-09-24
+### Added
+- Added `Table of Contents` section to `README.md`
+- Added `QuickStart` section to `README.md`
+- Added `Environment Variables` section to `README.md`
+- Added in `users.py` in `routers/`
+  - Creator-only role-management endpoint: `PUT /users/{user_id}/roles` to grant/revoke is_admin and is_creator.
+  - Admin/creator user-management endpoint: `PUT /users/{user_id}` to update user fields with creator/admin restrictions.
+- Added in `user.py` in `schemas`
+    - Added `is_creator` variable in schema.
+- Added in `users.py` in `models/`
+  - Added `is_creator` boolean column to User model (default: False).
+- Added in `set_admin.py` in `scripts`. 
+  - Added a way to set and remove admin claims. 
+  - Added guard to prevent modification of creator accounts.
+  - Added optional DB sync: if `BACKEND_URL` and `ADMIN_API_KEY` env vars are set, the script will call the backend creator-only role endpoint (`PUT /api/users/{uid}/roles`) to keep the DB as the source of truth in sync with Firebase claims.
+- Added in `schema.sql` in `db`
+  - Added `is_creator` BOOLEAN column (NOT NULL DEFAULT FALSE).
+- Added in `database.py` in `db/`
+  - Added environment validation: raises a clear error if `DATABASE_URL` is not set.
+### Changed
+- Changed `README.md`
+  - Updated "API Endpoints (FastAPI)" section to point to the local OpenAPI docs: http://localhost:8000/docs#/
+  - Documented current backend endpoints (Auth, Users, Posts, Social, Admin) and their purposes, including:
+    - Auth: `POST /auth/verify-token`
+    - Users: `GET /users/me`, `POST /users`, `PUT /me`, `PUT /users/{user_id}`, `PUT /users/{user_id}/roles`
+    - Posts: `POST /posts/create`, `GET /posts/feed`, `POST /posts/{id}/like`, `POST /posts/{id}/comments`, `POST /posts/{id}/flag`
+    - Social: `POST /follow/{user_id}`
+    - Admin: `GET /admin/*`, `DELETE /admin/users/{user_id}`, `DELETE /admin/posts/{post_id}`
+  - Added notes about using the interactive docs, required `Authorization: Bearer <id_token>` header, and that role management should use the creator-only DB endpoint so the database remains the source of truth.
+- Changed `Project Structure` section in `README.md`
+- Changed `users.py` in `models/`
+  - Ensured `firebase_uid` and `email` have indexes/uniqueness for efficient lookups.
+  - `created_at` set to default to `datetime.utcnow()` for new records.
+  - Reminder: run a DB migration (alembic revision --autogenerate -m "users: add is_creator" && alembic upgrade head) to apply model changes.
+  - Optional: consider adding a __repr__ or audit fields if needed for debugging and role-change traceability.
+- Changed `set_admin.py` in `scripts`. 
+  - Wrapped code in `try-except`for error handling.
+  - Changed added a cred path to the `.env` variable so that it's not hard coded into the program. 
+  - Replaced hard-coded service account path with `FIREBASE_CRED_PATH` env var.
+  - Fixed bug when `custom_claims` is `None` (now handled as empty dict).
+  - Improved CLI prompts and logging output.
+- Changed `admin.py` in `routers`
+  - Uses `require_creator` for role management
+  - Prevents creator account deletion or demotion
+  - New users default to `is_admin = False` and `is_creator = False` on creation.
+  - Regular users cannot change role flags via `/me` (only allowed fields: display_name, bio, avatar_url).
+  - Creators can edit anyone and change roles; admins can edit non-admin/non-creator users only and cannot change role flags.
+  - `users.py` router updated to enforce role boundaries and use DB as source of truth for roles.
+- Changed `users.py` in `routers`
+- Changed `user.py` in `schemas`
+  - Made `display_name` required and treated as the user's username (UserCreate.display_name is now required).
+  - Updated `UserUpdate` to allow optional `display_name` for edits.
+  - Updated `UserResponse` to include `display_name` and `is_creator`; `Config.orm_mode = True` set for ORM compatibility.
+  - Ensured schemas align with `backend/models/users.py` (including `is_creator`).
+- Changed `schema.sql` in `db/`
+  - Ensured `display_name` is NOT NULL and backfilled NULL values with `CONCAT('user_', id)`.
+  - Confirmed `created_at` uses `CURRENT_TIMESTAMP` default for new records.
+  - Verified foreign key constraints for `posts`, `comments`, `likes`, and `followers` reference `users(id)` with `ON DELETE CASCADE`.
+  - Reminder: apply the SQL changes or run DB migration to sync schema with models.
+
+- Changed `database.py` in `db/`
+  - Enabled `pool_pre_ping=True` to reduce stale connection errors.
+  - Made SQLAlchemy `echo` configurable via `SQLALCHEMY_ECHO` env var for debug logging.
+  - Set `SessionLocal` with `expire_on_commit=False` to keep ORM objects usable after commit (configurable choice).
+  - Overall: improved robustness and clearer failure modes for DB connection handling.
+### Removed
+- Removed  `Running Locally` Section. 
+- Removed in `user.py` in `schemas`
+  - Removed `firebase_uid` from `UserCreate` (server assigns UID from token / auth).
+- Removed in `admin.py` in `routers`
+  - Removed token-based admin sync; roles are no longer trusted from token claims.
+- Removed in `users.py` in `routers`
+  - Removed duplicate imports for the FastAPI
+  - Removed duplicate function name read_currently_user (one helper and one route)
+  - Removed overlapping routes `/me` and `/users/me`. 
+
+### Security
+- in `users.py` in `routers/`
+  - Role elevation now requires a creator action (prevents untrusted token claims from granting admin/creator).
+
 ## [1.0.3] - 2025-06-20
 ### Added
 - Created `web/src/pages/Register.jsx` for user registration page.
