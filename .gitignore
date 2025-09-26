@@ -47,6 +47,29 @@ web/npm-debug.log*
 web/yarn-debug.log*
 web/yarn-error.log*
 
+# dependencies
+web/node_modules
+
+# build output
+web/dist
+
+# local environment
+web/.env.local
+web/.env.*.local
+
+# system files
+web/.DS_Store
+web/Thumbs.db
+
+# logs
+web/npm-debug.log*
+web/yarn-debug.log*
+web/yarn-error.log*
+web/pnpm-debug.log*
+
+# editor/IDE settings (optional, but recommended)
+web/.vscode/
+web/.idea/
 # ===============================
 # 📱 MOBILE (Flutter)
 # ===============================

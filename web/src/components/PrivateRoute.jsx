@@ -1,18 +1,13 @@
 // src/components/PrivateRoute.jsx
-import { useEffect, useState } from "react";
 import { Navigate } from "react-router-dom";
-import Spinner from "./Spinner";
+import { useAuthState } from "react-firebase-hooks/auth";
+import { auth } from "../firebase";
 
 export default function PrivateRoute({ children }) {
-  const [loading, setLoading] = useState(true);
-  const [authenticated, setAuthenticated] = useState(false);
+  const [user, loading] = useAuthState(auth);
 
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    setAuthenticated(!!token);
-    setLoading(false);
-  }, []);
+  if (loading) return <p>Loading...</p>;
+  if (!user) return <Navigate to="/login" replace />;
 
-  if (loading) return <Spinner />;
-  return authenticated ? children : <Navigate to="/" />;
+  return children;
 }

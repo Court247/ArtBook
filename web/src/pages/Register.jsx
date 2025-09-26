@@ -2,75 +2,79 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { createUserWithEmailAndPassword } from "firebase/auth";
 import { auth } from "../firebase";
-import Spinner from "../components/Spinner";
+import axios from "axios";
 
-export default function CreateAccount() {
+export default function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [displayName, setDisplayName] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
   const navigate = useNavigate();
 
-  const handleRegister = async () => {
-    setLoading(true);
+  const handleRegister = async (e) => {
+    e.preventDefault();
     try {
-      const userCred = await createUserWithEmailAndPassword(auth, email, password);
-      const user = userCred.user;
-      const token = await user.getIdToken();
-      localStorage.setItem("token", token);
+      // Create user in Firebase
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
 
-      await fetch(`${import.meta.env.VITE_API_URL}/users/create`, {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
+      // Get Firebase ID token
+      const idToken = await user.getIdToken();
+
+      // Send to backend
+      await axios.post(
+        "http://localhost:8000/users/",
+        {
+          email: email,
           display_name: displayName,
-          email: user.email,
-        }),
-      });
+          bio: "",
+          avatar_url: ""
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${idToken}`,
+          },
+        }
+      );
 
       navigate("/home");
     } catch (err) {
-      alert("Account creation failed: " + err.message);
-    } finally {
-      setLoading(false);
+      console.error("Registration failed:", err);
+      setError(err.response?.data?.detail || err.message);
     }
   };
 
-  return loading ? (
-    <Spinner />
-  ) : (
-    <div className="p-8 max-w-md mx-auto">
-      <h2 className="text-xl mb-4">Create an Account</h2>
-      <input
-        type="text"
-        placeholder="Display Name"
-        value={displayName}
-        onChange={(e) => setDisplayName(e.target.value)}
-        className="w-full p-2 mb-2 border rounded"
-      />
-      <input
-        type="email"
-        placeholder="Email"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
-        className="w-full p-2 mb-2 border rounded"
-      />
-      <input
-        type="password"
-        placeholder="Password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        className="w-full p-2 mb-4 border rounded"
-      />
-      <button
-        onClick={handleRegister}
-        className="w-full p-2 bg-green-600 text-white rounded"
-      >
-        Sign Up
-      </button>
+  return (
+    <div>
+      <h2>Register</h2>
+      <form onSubmit={handleRegister}>
+        <input
+          type="text"
+          placeholder="Display Name"
+          value={displayName}
+          onChange={(e) => setDisplayName(e.target.value)}
+          required
+        />
+        <br />
+        <input
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+        />
+        <br />
+        <input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+        />
+        <br />
+        <button type="submit">Register</button>
+        {error && <p style={{ color: "red" }}>{error}</p>}
+      </form>
     </div>
   );
 }

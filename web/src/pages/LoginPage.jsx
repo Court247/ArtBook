@@ -1,50 +1,52 @@
 // src/pages/LoginPage.jsx
-import { auth } from "../firebase";
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../firebase";
 
 export default function LoginPage() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [err, setErr] = useState("");
 
   const handleLogin = async () => {
+    setErr("");
     try {
-      const userCred = await signInWithEmailAndPassword(auth, email, password);
-      const token = await userCred.user.getIdToken();
+      const cred = await signInWithEmailAndPassword(auth, email, password);
+      const token = await cred.user.getIdToken();
       localStorage.setItem("token", token);
       navigate("/home");
-    } catch (err) {
-      alert("User Not Found: ");
+    } catch (e) {
+      setErr(e.message);
     }
   };
 
   return (
-    <div className="p-8 max-w-md mx-auto">
-      <h2 className="text-xl mb-4">Login</h2>
+    <div className="login-page">
+      <h2>Login</h2>
+      {err && <div className="error">{err}</div>}
       <input
-        type="email"
+        className="input email"
         placeholder="Email"
         value={email}
         onChange={(e) => setEmail(e.target.value)}
-        className="w-full p-2 mb-2 border rounded"
       />
       <input
+        className="input password"
         type="password"
         placeholder="Password"
         value={password}
         onChange={(e) => setPassword(e.target.value)}
-        className="w-full p-2 mb-4 border rounded"
       />
-      <button onClick={handleLogin} className="w-full p-2 bg-blue-500 text-white rounded">
+      <button className="btn login" onClick={handleLogin}>
         Sign In
       </button>
       <button
-        onClick={() => navigate("/Register")}
-        className="w-full p-2 bg-blue-500 text-white rounded"
+        className="btn register"
+        onClick={() => navigate("/register")}
       >
-        Register
+        Create Account
       </button>
     </div>
   );

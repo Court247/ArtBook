@@ -2,46 +2,48 @@ import firebase_admin
 from firebase_admin import credentials, auth
 from fastapi import Header, HTTPException
 
-# Initialize once at import
-cred = credentials.Certificate("artbook-20329-firebase-adminsdk-fbsvc-ddbc5c06ca.json")
-firebase_admin.initialize_app(cred)
+# Initialize Firebase only once
+if not firebase_admin._apps:
+    cred = credentials.Certificate("artbook-20329-firebase-adminsdk-fbsvc-ddbc5c06ca.json")
+    firebase_admin.initialize_app(cred)
 
-def get_token_payload(auth_header: str = Header(...)):
+
+def get_token_payload(authorization: str = Header(...)):
     """
     Extracts and verifies the Firebase token from the Authorization header.
     Returns decoded token payload.
     """
-    if not auth_header.startswith("Bearer "):
+    if not authorization.startswith("Bearer "):
         raise HTTPException(status_code=401, detail="Invalid or missing token format")
-    token = auth_header.replace("Bearer ", "")
-    payload = verify_token(token)
-    if not payload:
-        raise HTTPException(status_code=401, detail="Invalid Firebase token")
-    return payload
 
-def verify_token(id_token: str):
-    """
-    Verifies a Firebase ID token and extracts claims.
-    Includes both admin and creator roles if set.
-    """
+    token = authorization.replace("Bearer ", "")
     try:
-        decoded = auth.verify_id_token(id_token)
+        decoded = auth.verify_id_token(token)
         return {
             "uid": decoded["uid"],
             "email": decoded.get("email"),
             "admin": decoded.get("admin", False),
-            "creator": decoded.get("creator", False)
+            "creator": decoded.get("creator", False),
         }
     except Exception:
-        return None
+        raise HTTPException(status_code=401, detail="Invalid Firebase token")
+
 
 def require_admin(payload: dict):
+    """
+    Raises 403 if user does not have admin claim.
+    """
     if not payload.get("admin", False):
         raise HTTPException(status_code=403, detail="Admin access required")
 
+
 def require_creator(payload: dict):
+    """
+    Raises 403 if user does not have creator claim.
+    """
     if not payload.get("creator", False):
         raise HTTPException(status_code=403, detail="Creator access required")
+
 
 def set_custom_user_claims(uid: str, claims: dict):
     """

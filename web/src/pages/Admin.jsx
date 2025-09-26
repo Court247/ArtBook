@@ -1,9 +1,10 @@
-import AdminDashboard from "./AdminDashboard";
+// src/pages/Admin.jsx
+import AdminDashboard from "../components/AdminDashboard";
 import AuthGate from "../components/AuthGate";
 
-export default function AdminPage() {
+export default function Admin() {
   return (
-    <AuthGate requireAdmin={true}>
+    <AuthGate requireAdmin>
       <AdminDashboard />
     </AuthGate>
   );

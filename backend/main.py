@@ -5,7 +5,7 @@ from routers import users, posts, comments, likes, admin
 
 app = FastAPI(
     title="ArtBook",
-    version="1.0.2",
+    version="1.0.6",
     description="Backend API for a cross-platform social media app using FastAPI, MySQL, and Firebase."
 )
 
@@ -19,11 +19,11 @@ app.add_middleware(
 )
 
 # 📦 Route registration
-app.include_router(users.router, prefix="/users", tags=["Users"])
-app.include_router(posts.router, prefix="/posts", tags=["Posts"])
-app.include_router(comments.router, tags=["Comments"])
-app.include_router(likes.router, tags=["Likes"])
-app.include_router(admin.router, prefix="/admin", tags=["Admin"])  # 👈 new
+app.include_router(users.router)
+# app.include_router(posts.router, prefix="/posts", tags=["Posts"])
+# app.include_router(comments.router, tags=["Comments"])
+# app.include_router(likes.router, tags=["Likes"])
+# app.include_router(admin.router)
 
 # ✅ Health check
 @app.get("/")

@@ -1,31 +1,40 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Spinner from "./Spinner";
+
+const API = (import.meta.env.VITE_API_URL || "http://localhost:8000").replace(/\/+$/, "");
 
 export default function AuthGate({ children, requireAdmin = false }) {
   const [loading, setLoading] = useState(true);
-  const [allow, setAllow] = useState(false);
+  const [allowed, setAllowed] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (!token) return navigate("/");
-
-    fetch(`${import.meta.env.VITE_API_URL}/users/me`, {
-      headers: { Authorization: `Bearer ${token}` },
-    })
-      .then((res) => res.json())
-      .then((user) => {
+    (async () => {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        navigate("/login");
+        return;
+      }
+      try {
+        const res = await fetch(`${API}/users/me`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (!res.ok) throw new Error("auth failed");
+        const user = await res.json();
         if (requireAdmin && !user.is_admin) {
           navigate("/home");
-        } else {
-          setAllow(true);
+          return;
         }
-      })
-      .catch(() => navigate("/"))
-      .finally(() => setLoading(false));
-  }, []);
+        setAllowed(true);
+      } catch {
+        navigate("/login");
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [requireAdmin, navigate]);
 
-  if (loading) return <Spinner />;
-  return allow ? children : null;
+  if (loading) return <div style={{ padding: 20 }}>Checking access...</div>;
+  if (!allowed) return null;
+  return children;
 }
