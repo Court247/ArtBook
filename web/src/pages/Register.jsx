@@ -25,6 +25,7 @@ export default function Register() {
       await axios.post(
         "http://localhost:8000/users/",
         {
+          firebase_uid: user.uid,
           email: email,
           display_name: displayName,
           bio: "",

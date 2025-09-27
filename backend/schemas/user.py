@@ -1,35 +1,40 @@
-from datetime import datetime
+# schemas/user.py
 from pydantic import BaseModel, EmailStr
 from typing import Optional
+from datetime import datetime
+from enum import Enum
+
+class RoleEnum(str, Enum):
+    creator = "creator"
+    admin = "admin"
+    premium = "premium"
+    regular = "regular"
 
 class UserBase(BaseModel):
     email: EmailStr
-    display_name: str
-    bio: Optional[str] = None          # changed: was required str
+    display_name: Optional[str] = None
+    bio: Optional[str] = None
     avatar_url: Optional[str] = None
 
 class UserCreate(UserBase):
-    pass
-
-class UserCreate(BaseModel):
     firebase_uid: str
-    email: str
-    display_name: str
+    # optional role during create (creator should not be self-assigned normally)
+    role: Optional[RoleEnum] = RoleEnum.regular
+
+class UserUpdate(BaseModel):
+    display_name: Optional[str] = None
     bio: Optional[str] = None
     avatar_url: Optional[str] = None
-    
-    class Config:
-        from_attributes = True
 
 class UserResponse(BaseModel):
     firebase_uid: str
-    email: str
-    display_name: str
-    bio: Optional[str]
-    avatar_url: Optional[str]
-    is_admin: bool
-    created_at: datetime
-    is_creator: bool
+    email: EmailStr
+    display_name: Optional[str] = None
+    bio: Optional[str] = None
+    avatar_url: Optional[str] = None
+    role: RoleEnum
+    created_at: Optional[datetime] = None
 
     class Config:
-        from_attributes = True  # instead of orm_mode in Pydantic v2
+        # Pydantic v2 compatibility: allow reading attributes off ORM objects
+        from_attributes = True

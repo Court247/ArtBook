@@ -70,3 +70,15 @@ UPDATE users
 SET display_name = CONCAT('user_', LEFT(firebase_uid, 8))
 WHERE display_name IS NULL OR display_name = '';
 
+-- 1) add the role column with default 'regular'
+ALTER TABLE users
+  ADD COLUMN role ENUM('creator','admin','premium','regular') NOT NULL DEFAULT 'regular';
+
+-- 2) migrate existing boolean flags into role
+UPDATE users SET role = 'creator' WHERE is_creator = 1;
+UPDATE users SET role = 'admin' WHERE is_admin = 1 AND role != 'creator';
+
+-- 3) (optional) drop old boolean columns after verifying
+ALTER TABLE users DROP COLUMN is_admin;
+ALTER TABLE users DROP COLUMN is_creator;
+ALTER TABLE users ADD COLUMN status ENUM('active','suspended','banned','deleted') NOT NULL DEFAULT 'active';

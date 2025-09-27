@@ -2,82 +2,155 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.7] - 2025-09-27
+
+### Added
+- `Register.jsx` in `pages/`
+  - Added `firebase_uid: firebaseUser.uid` to the request body.
+- `users.py` in `models/`
+  - Added a single `role` column using an Enum (`creator`, `admin`, `premium`, `regular`).
+  - Helper methods `is_creator()` and `is_admin()` make permission checks simpler.
+- `firebase_auth.py` in `utils/`
+  - Added token verification helper (`get_token_payload`) that reads Firebase ID tokens.
+  - Added `set_custom_user_claims` so backend can sync Firebase custom claims (`admin: True`, `creator: True`).
+  - Added a function `enforce_user_status(user)`
+- Role-based system added
+  - We refactored your backend to use a `role` column instead of separate `is_creator` / `is_admin` booleans.
+  - Roles available: `creator`, `admin`, `regular `(expandable to `premium` later).
+  - Enforcement logic:
+    - __Creator__: can do everything, including promoting/demoting admins.
+    - __Admin__: can manage regular/premium users, but not creators or other admins.
+    - __Regular__: can only edit their own data.
+### Changed
+- `Register.jsx` in `pages/`
+  - Included `bio` + `avatar_url` as empty strings (safe defaults).
+- `users.py` in `models/`
+  - Database migration SQL provided:
+      - Add `role` column (default `regular`).
+      - Convert old booleans into `role`.
+      - Drop old columns when safe.
+- `users.py` in `schemas/`
+  - Updated Pydantic models to use `role` instead of multiple booleans.
+  - `UserCreate` accepts `firebase_uid` and optional `role` (but by default it’s `regular`).
+  - `UserUpdate` only allows updating profile fields (no role changes).
+  - `UserResponse` includes `role` so frontend can display it.
+  - Updated for Pydantic v2 (`from_attributes = True`).
+- `firebase_auth.py` in `utils/`
+  - Defined permission helpers:
+    -` require_creator()` → only creators can continue.
+    - `require_admin()` → allows admins & creators.
+    - `require_self_or_admin()` → user can update their own data, or admins/creators can.
+    - `forbid_admin_on_creator_db()` → prevents admins from touching creator accounts.
+    - `forbid_admin_on_admin_db()` → prevents admins from editing other admins (only creators can).
+- `users.py` in `routers/`
+  - `POST /users/` → create a new user, defaults to `role="regular"`.
+  - `GET /users/me` → returns the logged-in user.
+  - `PUT /users/{firebase_uid}` → update profile info.
+  - Checks: user can update self, or admin/creator can update others.
+  - Admins cannot update creators or other admins.
+  - Only profile fields (no `role` changes here).
+- `admin.py` in `routers/`
+  - `GET /admin/dashboard` → example admin-only endpoint.
+  - `GET /admin/users` → list all users (admin/creator only).
+  - `DELETE /admin/users/{firebase_uid}` → delete a user.
+  - Admins cannot delete creators or other admins (only creators can).
+  - `POST /admin/promote-user/{firebase_uid}` → creator-only.
+  - Promote/demote users to/from admin.
+  - Updates both DB (`role`) and Firebase custom claims (admin).
+- Profile status enforcement introduced
+  - Added a `status` column to `User` model (inside `models/users.py`).
+  - Enum `StatusEnum`: `active`, `deleted`, `suspended`, `banned`.
+  - Default is `active`.
+- Status enforcement logic
+  - Added a function `enforce_user_status(user)` in `firebase_auth.py`.
+  - Blocks access if the user is `deleted`, `suspended`, or `banned`.
+### Removed
+- `Register.jsx` in `pages/`
+  - Removed `password` from the payload (since backend doesn’t expect it).
+- `users.py` in `models/`
+  - Removed `is_creator` and `is_admin` boolean flags.
+### Fixed
+- `firebase_auth.py` in `utils/`
+  - He error `NameError: name 'models'` is not defined fixed
+  - Fixed by importing directly from `models/users.py`
+
+
 ## [1.0.6] - 2025-09-25
 
 ### Added
- - Added in `Register.jsx` in pages
-    - Added inline `API_URL` resolution using Vite env (`import.meta.env.VITE_API_URL` with localhost fallback).
-    - Added Firebase email/password registration flow (`createUserWithEmailAndPassword`), token retrieval (`getIdToken`), and localStorage persistence.
-    - Added POST `/users` call sending `display_name` and `email` with `Authorization: Bearer <token>` header.
-    - Frontend `Register.jsx` now sends Firebase ID token in the `Authorization` header to authenticate backend requests.
- - Added in `firebase.js` in src
-    - Added Vite-based Firebase config keys (`import.meta.env.VITE_FIREBASE_*`).
-  - Added dependancy
-    - `axios`
-    - `email validator`
-  - Added handling of environment variable `VITE_API_URL` to dynamically target backend.
-  - Registration flow extended: after creating Firebase user, frontend also creates a corresponding entry in the MySQL DB via FastAPI `/users/`.
-  - Support for optional fields (`bio`, `avatar_url`) in user creation request.
-  - Added in `user.py` in `schema`
-    - Added `uid` parameter so that the UID of user gets added to the mysql database. 
-  - Added new users table with correct parameters in ArtBook database.
-  - Added in `firebase_auth` in `utils`
-    - Added "`creator`" claim support for your creator-only endpoints.
+- Added in `Register.jsx` in pages
+  - Added inline `API_URL` resolution using Vite env (`import.meta.env.VITE_API_URL` with localhost fallback).
+  - Added Firebase email/password registration flow (`createUserWithEmailAndPassword`), token retrieval (`getIdToken`), and localStorage persistence.
+  - Added POST `/users` call sending `display_name` and `email` with `Authorization: Bearer <token>` header.
+  - Frontend `Register.jsx` now sends Firebase ID token in the `Authorization` header to authenticate backend requests.
+- Added in `firebase.js` in src
+  - Added Vite-based Firebase config keys (`import.meta.env.VITE_FIREBASE_*`).
+- Added dependancy
+  - `axios`
+  - `email validator`
+- Added handling of environment variable `VITE_API_URL` to dynamically target backend.
+- Registration flow extended: after creating Firebase user, frontend also creates a corresponding entry in the MySQL DB via FastAPI `/users/`.
+- Support for optional fields (`bio`, `avatar_url`) in user creation request.
+- Added in `user.py` in `schema`
+  - Added `uid` parameter so that the UID of user gets added to the mysql database. 
+- Added new users table with correct parameters in ArtBook database.
+- Added in `firebase_auth` in `utils`
+  - Added "`creator`" claim support for your creator-only endpoints.
 
 ### Changed
-  - Migrated frontend environment variable strategy from CRA (`REACT_APP_*`) to Vite (`VITE_*`), affecting `Register.jsx` and `firebase.js`
-  - Normalized API base URL handling to trim trailing slashes and use fallback `http://localhost:8000` when `VITE_API_URL` is unset.  
-  - Changed `Register.jsx`
-    - Improved error handling in `Register.jsx`: now throws with status + response text if account creation fails.
-    - Updated `Register.jsx` to navigate to `/home` after successful registration.
-    - Made bio in schema optional
-    - `Register.jsx` updated to call correct endpoint `(/users/)` instead of incorrect `/users` or `/users/users`.
- - Changed in `firebase.js`
-    - Ensured `firebase.js` reads only the necessary Vite-prefixed keys (removed legacy `REACT_APP_` usage).
-  - Changed in `user.py` in `schemas`
-    - `bio` field in `UserCreate` schema changed from required → optional (Optional[str] = None).
-    - `UserResponse.id` is a string (Firebase UID) instead of `int`.
-    - `orm_mode = True` so SQLAlchemy models map cleanly to Pydantic responses.
-  - Changed in `users.py` in `routers`
-    - Router definitions in `routers/users.py` updated to use `@router.post("/")` instead of `@router.post("/users")`.
-    - Cleaned up FastAPI routes to avoid double prefixes like `/users/users`.
-    - Pulled `firebase_uid` straight from `get_token_payload` (verified Firebase token).
-    - `/users/` now always binds the Firebase UID to the DB user.
-    - Prevents UID spoofing.
-    - Always uses `firebase_uid` from token.
-    - `uid` removed from schema expectations.
-  - Changed in `admin.py` in `routers`
-    - `require_admin` protects admin endpoints.
-    - `require_creator` ensures only the creator can promote/demote users.
-    - All queries use `firebase_uid` (string PK) consistently.
-  - Changed in `users.py` in `models/`
-    - `firebase_uid` is the primary key (`String(128)`), no auto-increment `id`.
-    - Columns match `schemas/user.py` and what you insert in `routers/users.py`.
-    - Email is `unique=True` to prevent duplicates.
-    - Commented out anything that doesn't deal in `users`. This includes imports. 
+- Migrated frontend environment variable strategy from CRA (`REACT_APP_*`) to Vite (`VITE_*`), affecting `Register.jsx` and `firebase.js`
+- Normalized API base URL handling to trim trailing slashes and use fallback `http://localhost:8000` when `VITE_API_URL` is unset.  
+- Changed `Register.jsx`
+  - Improved error handling in `Register.jsx`: now throws with status + response text if account creation fails.
+  - Updated `Register.jsx` to navigate to `/home` after successful registration.
+  - Made bio in schema optional
+  - `Register.jsx` updated to call correct endpoint `(/users/)` instead of incorrect `/users` or `/users/users`.
+- Changed in `firebase.js`
+  - Ensured `firebase.js` reads only the necessary Vite-prefixed keys (removed legacy `REACT_APP_` usage).
+- Changed in `user.py` in `schemas`
+  - `bio` field in `UserCreate` schema changed from required → optional (Optional[str] = None).
+  - `UserResponse.id` is a string (Firebase UID) instead of `int`.
+  - `orm_mode = True` so SQLAlchemy models map cleanly to Pydantic responses.
+- Changed in `users.py` in `routers`
+  - Router definitions in `routers/users.py` updated to use `@router.post("/")` instead of `@router.post("/users")`.
+  - Cleaned up FastAPI routes to avoid double prefixes like `/users/users`.
+  - Pulled `firebase_uid` straight from `get_token_payload` (verified Firebase token).
+  - `/users/` now always binds the Firebase UID to the DB user.
+  - Prevents UID spoofing.
+  - Always uses `firebase_uid` from token.
+  - `uid` removed from schema expectations.
+- Changed in `admin.py` in `routers`
+  - `require_admin` protects admin endpoints.
+  - `require_creator` ensures only the creator can promote/demote users.
+  - All queries use `firebase_uid` (string PK) consistently.
+- Changed in `users.py` in `models/`
+  - `firebase_uid` is the primary key (`String(128)`), no auto-increment `id`.
+  - Columns match `schemas/user.py` and what you insert in `routers/users.py`.
+  - Email is `unique=True` to prevent duplicates.
+  - Commented out anything that doesn't deal in `users`. This includes imports. 
     
 ### Removed
- - Removed in `Register.jsx`
-    - Removed prior CRA-specific env usage (`process.env.REACT_APP_API_URL`) from registration flow and Firebase initialization.
-  - Removed `AdminPage.jsx`
-  - Removed all tables in ArtBook database
-  - Removed in `users.py` in `routers/`
-    - Removed any need to send `uid` in request body.
-  - Removed in `user.py` in `schemas`
-    - Removed `uid` from UserCreate — the backend now derives it from the Firebase token.
+- Removed in `Register.jsx`
+  - Removed prior CRA-specific env usage (`process.env.REACT_APP_API_URL`) from registration flow and Firebase initialization.
+- Removed `AdminPage.jsx`
+- Removed all tables in ArtBook database
+- Removed in `users.py` in `routers/`
+  - Removed any need to send `uid` in request body.
+- Removed in `user.py` in `schemas`
+  - Removed `uid` from UserCreate — the backend now derives it from the Firebase token.
 
 ### Fixed
 
-  - 404 error during registration caused by mismatch between frontend route `(/users)` and backend route `(/users/users)`.
-  - 422 (Unprocessable Content) error fixed by explicitly including `display_name` in `Register.jsx` request body.
-  - React Vite migration issues:
-    - Corrected import paths `(../components/...` vs `./...)` in `Admin.jsx `and related pages.
-    - Ensured JSX runtime compatibility with Vite `(jsxDEV)`.
-    - Missing dependency error: resolved by replacing `axios` with `fetch` in early tests, then reinstating `axios` with `npm install axios`.
-  - Fixed in `firebase_auth` in `utils`
-    - Changed parameter from `auth_header → authorization: str = Header(...)`.
-      - Now binds correctly to the `Authorization: Bearer` ... header you’re sending.
-    - Firebase initialized only once with `if not firebase_admin._apps`.
+- 404 error during registration caused by mismatch between frontend route `(/users)` and backend route `(/users/users)`.
+- 422 (Unprocessable Content) error fixed by explicitly including `display_name` in `Register.jsx` request body.
+- React Vite migration issues:
+  - Corrected import paths `(../components/...` vs `./...)` in `Admin.jsx `and related pages.
+  - Ensured JSX runtime compatibility with Vite `(jsxDEV)`.
+  - Missing dependency error: resolved by replacing `axios` with `fetch` in early tests, then reinstating `axios` with `npm install axios`.
+- Fixed in `firebase_auth` in `utils`
+  - Changed parameter from `auth_header → authorization: str = Header(...)`.
+    - Now binds correctly to the `Authorization: Bearer` ... header you’re sending.
+  - Firebase initialized only once with `if not firebase_admin._apps`.
 
 ## [1.0.5] - 2025-09-24
 ### Added
