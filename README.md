@@ -1,4 +1,4 @@
-# 🌐 ArtBook (Monorepo) ![version](https://img.shields.io/badge/version-1.0.5-blue)
+# 🌐 ArtBook (Monorepo) ![version](https://img.shields.io/badge/version-1.0.8-blue)
 
 
 A full-stack, cross-platform social media application built with:
