@@ -1,8 +1,71 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [1.0.8] - 2025-09-27
 
-## [1.0.7] - 2025-09-27
+### Added
+- `README.md`
+  - Added "Home" Section in API Endpoints 
+  - Added 'Followers" section to API Endpoints
+- Added to `models/`
+  - `follow.py`
+- Added to `routers/`
+  - `follow.py`
+  - home.py
+- Added to `schemas/`
+  - `follow.py`
+- `firebase_auth.py`
+  - Added `get_current_user` method to get the current user
+- `comments.py` in `schemas/`
+  - Created Pydantic schemas:
+    - `CommentBase` → holds `content`.
+    - `CommentCreate` → extends base, adds `post_id`.
+    - `CommentResponse` → full representation (`id`, `user_id`, `post_id`, `content`, `created_at`).
+  - Added `Config.from_attributes = True`for SQLAlchemy compatibility.
+- `comments.py` in `routers/`
+  - Added endpoints:
+    - POST `/comments/` → create a comment on a post.
+      - Requires valid post ID, authenticated user.
+    - GET `/comments/post/{post_id}` → list all comments on a post.
+      - Sorted by newest first.
+    - DELETE `/comments/{comment_id}` → delete a comment.
+      - Allowed if: comment owner OR `creator`/`admin`.
+- New tables to database
+  - posts
+  - likes
+  - follows
+  - comments
+### Changed
+- `README.md`
+  - Changed the "Users" Section in the API Endpoints
+- `posts.py` in `routers/`
+  - uncommented routers
+  - Confirmed `comments` relationship already exists:
+  - `comments = relationship("Comment", back_populates="post", cascade="all, delete-orphan")`
+
+- `comment.py`in` models/`
+  - Added `Comment` model with fields:
+    - `id` (UUID string, primary key)
+    - `user_id` → FK to `users.firebase_uid`
+    - `post_id` → FK to `posts.id`
+    - `content` (text)
+    - `created_at` (datetime, default now)
+  - Relationships:
+    - `author` → back to `User.comments`
+    - `post` → back to `Post.comments`
+- `users.py` in `models/`
+  - Added `comments` relationship:
+    - `comments = relationship("Comment", back_populates="author", cascade="all, delete-orphan")`
+- `main.py` in `backend/`
+  - registered comments router
+- routers/
+  - updated all router folders to properly process `firebase_uid` instead of `user_id`
+### Removed
+- `README.md`
+  - Removed the "Auth" section in the API Endpoints
+  - Removed the "Social", "Posts", and "Admin" API Endpoints section in the read me. Will add them as the building progresses. Saves confusion and frustration.
+
+## [1.0.7] - 2025-09-26
 
 ### Added
 - `Register.jsx` in `pages/`

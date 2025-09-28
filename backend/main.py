@@ -1,11 +1,10 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
-from routers import users, posts, comments, likes, admin
+from routers import users as users_router, follow as follow_router, posts as posts_router, home as home_router, comments, likes, admin
 
 app = FastAPI(
     title="ArtBook",
-    version="1.0.6",
+    version="1.0.8",
     description="Backend API for a cross-platform social media app using FastAPI, MySQL, and Firebase."
 )
 
@@ -19,11 +18,13 @@ app.add_middleware(
 )
 
 # 📦 Route registration
-app.include_router(users.router)
-# app.include_router(posts.router, prefix="/posts", tags=["Posts"])
-# app.include_router(comments.router, tags=["Comments"])
-# app.include_router(likes.router, tags=["Likes"])
-# app.include_router(admin.router)
+app.include_router(users_router.router)
+app.include_router(home_router.router)
+app.include_router(follow_router.router)
+app.include_router(posts_router.router)
+app.include_router(comments.router)
+app.include_router(likes.router)
+app.include_router(admin.router)
 
 # ✅ Health check
 @app.get("/")

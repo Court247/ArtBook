@@ -15,43 +15,27 @@ This project is built and maintained as a **monorepo** for easier management and
 📑 Table of Contents
 
 1. ⚡ [Quickstart](#-quickstart)
-
 2. 🔑 [Environment Variables](#-environment-variables)
-
 3. 📁 [Project Structure](#-project-structure)
-
 4. 📂 [Folder Breakdown](#-folder-breakdown)
-
     - [routers/](#-routers--api-route-logic)
-
     - [models/](#models--sqlalchemy-database-models)
-
     - [schemas/](#-schemas--pydantic-schemas)
-
     - [utils/](#-utils--utility-functions)
-
 5. 🧰 [Tech Stack](#-tech-stack)
-
 6. 🔐 [Authentication](#-authentication)
-
 7. 📸 [Media Uploads](#-media-uploads)
-
 8. 📊 [Database Schema (MySQL)](#-database-schema-mysql)
-
 9. 🌍 [API Endpoints (FastAPI)](#-api-endpoints-fastapi)
-
-    - [Auth + Users](#-auth--user-endpoints)
-
-    - [Posts](#)
-
-    - [Social](#)
-
-    - [Admin](#)
-
+    - [Users](#-users)
+    - [Home/Feed](#-home--feed)
+    - [Follow](#-follow)
+    - [Comments](#-comments)
+    - [Likes](#likes)
+    - [Posts](#-posts)
+    - [Admin](#️-admin)
 10. 🧪 [Testing](#)
-
 11. ✅ [License](#-license)
-
 12. ✍️ [Author](#author)
 
 ## ⚡ Quickstart
@@ -246,50 +230,71 @@ See `/backend/db/schema.sql` for full schema.
 
 The live API OpenAPI/Swagger UI is available at: http://localhost:8000/docs#/
 
-Use the interactive docs to explore request/response shapes, try endpoints, and view authentication requirements.
-
-### 🔐 Auth
-| Method | Endpoint               | Description                          |
-| ------ | ---------------------- | ------------------------------------ |
-| POST   | /auth/verify-token     | Verify Firebase ID token and return token payload |
+Use the interactive docs to explore request/response shapes, try endpoints, and view authentication requirements. These are subject to be updated depend on the changing information. 
 
 ### 👥 Users
 | Method | Endpoint                          | Description |
 | ------ | --------------------------------- | ----------- |
 | GET    | /users/me                         | Get current authenticated user's profile |
-| POST   | /users                            | Create a user record (server reads Firebase UID from token) |
-| PUT    | /me                               | Update own profile (only safe fields allowed) |
-| PUT    | /users/{user_id}                  | Admin/creator update of a user (creators can edit roles; admins limited) |
-| PUT    | /users/{user_id}/roles            | Creator-only: set is_admin / is_creator flags |
+| POST   | /users/                            | Create a user record (server reads Firebase UID from token) |
+| PUT    | /users/{firebase_uid}                               | Update user |
+
+### 🏠 Home / Feed
+
+| Method | Endpoint          | Description                                                                               |
+| ------ | ----------------- | ----------------------------------------------------------------------------------------- |
+| GET    | /home/feed  | Posts from people the user follows + their own posts.       |
+| GET    | /home/trending    | Get trending posts (based on likes, comments, flags, or algorithm) Limit 20     |
+| GET    | /home/recommended | Get recommended users or posts (simple logic: mutual follows, popular users, etc.)        |
+| GET    | /home/activity    | Get recent activity (likes, follows, comments on user’s posts)                            |
+| GET    | /home/stats       | Get quick stats (post count, followers, following, likes received) for the logged-in user |
+
+### 😎 Follow
+| Method | Endpoint          | Description                                                                               |
+| ------ | ----------------- | ----------------------------------------------------------------------------------------- |
+| POST    | /follow/        | Posts from people the user follows + their own posts.       |
+| DELETE    | /follow/{user_id}    | unfollow    |
+| GET    | /follow/following/{user_id} | see who a user follows     |
+| GET    | /follow/follower/{user_id}    | see who follows them
+
+###  💬 Comments
+| Method | Endpoint          | Description                                                                               |
+| ------ | ----------------- | ----------------------------------------------------------------------------------------- |
+| POST    | /comments/        | create a new comment on a post.      |
+| DELETE    |/comments/{comment_id} | delete a comment (only the author or admin/creator can).   |
+| GET    | /comments/post/{post_id} | list all comments for a given post.   |
+
+
+### 👍Likes
+| Method | Endpoint          | Description                                                                               |
+| ------ | ----------------- | ----------------------------------------------------------------------------------------- |
+| POST    | /likes/posts/{post_id}        | Like or unlike a post  |
+| GET    | /likes/post/{post_id}/count | Shows total like count |
 
 ### 📝 Posts
 | Method | Endpoint               | Description |
 | ------ | ---------------------- | ----------- |
 | POST   | /posts/create          | Create a post (caption + image URL) |
 | GET    | /posts/feed            | Get feed (recent posts from followed users) |
-| POST   | /posts/{id}/like       | Like or unlike a post |
-| POST   | /posts/{id}/comments   | Add a comment to a post |
-| POST   | /posts/{id}/flag       | Flag a post for admin review |
-
-### 👥 Social (Follow)
-| Method | Endpoint            | Description |
-| ------ | ------------------- | ----------- |
-| POST   | /follow/{user_id}   | Follow or unfollow a user |
+| GET   | /posts/user/{user_id}       | Get user's posts |
+| DELETE  | /posts/{post_id}   | Users can delete their posts. |
+| POST   | /posts/{post_id}/flag       | Flag a post for admin review |
 
 ### 🛡️ Admin
 | Method | Endpoint                 | Description |
 | ------ | ------------------------ | ----------- |
 | GET    | /admin/dashboard         | Test admin access |
 | GET    | /admin/users             | Get all registered users |
-| DELETE | /admin/users/{user_id}   | Delete a user |
-| GET    | /admin/posts             | Get all posts |
-| GET    | /admin/flagged-posts     | Get flagged posts |
-| DELETE | /admin/posts/{post_id}   | Delete a post |
+| DELETE | /admin/users/{firebase_id}   | Delete a user |
+| POST | /admin/promote-user/{firebase_id}   | Promote or Demote users |
+| GET    | /admin/posts             | Get all posts (to be implemented) |
+| GET    | /admin/flagged-posts     | Get flagged posts (to be implemented) |
+| DELETE | /admin/posts/{post_id}   | Delete a post (to be implemented)|
 
 Notes:
 - Open http://localhost:8000/docs#/ to use the interactive docs and see required auth headers and request schemas.
-- The backend verifies Firebase ID tokens; include Authorization: Bearer <id_token> where required.
-- For role management, the DB is the source of truth — use the creator-only roles endpoint to change is_admin/is_creator flags so the database and Firebase claims stay consistent.
+- The backend verifies Firebase ID tokens; include `Authorization: Bearer <id_token>` where required.
+
 ## ✅ License
 
 All rights reserved. Closed source, not for redistribution. You may not use, copy, distribute, or modify any part of this code without express written permission from the author. See [LICENSE.txt](./LICENSE.txt) for full terms.

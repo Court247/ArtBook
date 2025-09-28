@@ -5,7 +5,9 @@ from fastapi import Header, HTTPException
 from typing import Optional
 import os
 from models.users import User, StatusEnum
-
+from fastapi import Depends
+from sqlalchemy.orm import Session
+from db.database import get_db
 
 # initialize app (keep your credential file path or env var)
 if not firebase_admin._apps:
@@ -77,6 +79,7 @@ def forbid_admin_on_admin_db(target_user, acting_payload):
     if getattr(target_user, "role", None) == "admin" and not acting_payload.get("creator", False):
         raise HTTPException(status_code=403, detail="Admins cannot modify other admins")
 
+
 def enforce_user_status(user: User):
     if user.status == StatusEnum.deleted:
         raise HTTPException(status_code=403, detail="User account is deleted")
@@ -102,3 +105,22 @@ def get_user_record(uid: str):
         return auth.get_user(uid)
     except Exception as e:
         raise HTTPException(status_code=404, detail=f"Firebase user not found: {e}")
+
+
+def get_current_user(
+    payload: dict = Depends(get_token_payload),
+    db: Session = Depends(get_db)
+) -> User:
+    """
+    FastAPI dependency: get the current logged-in user from Firebase token + DB.
+    """
+    firebase_uid = payload["uid"]
+
+    user = db.query(User).filter(User.firebase_uid == firebase_uid).first()
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found in database")
+
+    # Enforce status (active / banned / suspended / deleted)
+    enforce_user_status(user)
+
+    return user

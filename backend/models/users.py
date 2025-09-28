@@ -3,6 +3,7 @@ from sqlalchemy import Column, String, DateTime, Enum
 from datetime import datetime
 from db.database import Base
 import enum
+from sqlalchemy.orm import relationship
 
 class RoleEnum(str, enum.Enum):
     creator = "creator"
@@ -44,3 +45,14 @@ class User(Base):
 
     def is_suspended(self) -> bool:
         return self.status == StatusEnum.suspended
+
+    # Relationships
+    posts = relationship("Post", back_populates="author", cascade="all, delete-orphan")
+    comments = relationship("Comment", back_populates="author", cascade="all, delete-orphan")
+    likes = relationship("Like", back_populates="user", cascade="all, delete-orphan")
+    followers = relationship(
+        "Follow", foreign_keys="Follow.following_id", back_populates="following", cascade="all, delete-orphan"
+    )
+    following = relationship(
+        "Follow", foreign_keys="Follow.follower_id", back_populates="follower", cascade="all, delete-orphan"
+    )
