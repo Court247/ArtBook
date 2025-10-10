@@ -1,81 +1,122 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+# routers/follow.py
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from typing import List
+
 from db.database import get_db
 from models.follow import Follow
 from models.users import User
-from schemas.follow import FollowCreate, FollowResponse
-from typing import List
+from schemas.follow import FollowCreate, FollowResponse, FollowerFollowingResponse
 from utils.firebase_auth import get_current_user
 
-router = APIRouter(
-    prefix="/follow",
-    tags=["Follow"]
-)
+router = APIRouter(prefix="/follow", tags=["Follow"])
 
-# ✅ Follow a user
+# -------------------------------------------------
+# Follow a user
+# -------------------------------------------------
 @router.post("/", response_model=FollowResponse)
 def follow_user(
     follow: FollowCreate,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    if follow.follower_id != current_user.firebase_uid:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="You can only follow as yourself"
-        )
+    # prevent self-follow
+    if follow.following_id == current_user.id:
+        raise HTTPException(status_code=400, detail="You cannot follow yourself")
 
-    if follow.follower_id == follow.following_id:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="You cannot follow yourself"
-        )
+    # target user must exist
+    target = db.query(User.id).filter(User.id == follow.following_id).first()
+    if not target:
+        raise HTTPException(status_code=404, detail="User to follow not found")
 
-    existing = db.query(Follow).filter_by(
-        follower_id=follow.follower_id,
-        following_id=follow.following_id
-    ).first()
-
+    # unique (follower_id, following_id)
+    existing = (
+        db.query(Follow)
+        .filter(Follow.follower_id == current_user.id, Follow.following_id == follow.following_id)
+        .first()
+    )
     if existing:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Already following this user"
-        )
+        raise HTTPException(status_code=400, detail="Already following this user")
 
-    db_follow = Follow(**follow.dict())
+    db_follow = Follow(follower_id=current_user.id, following_id=follow.following_id)
     db.add(db_follow)
     db.commit()
     db.refresh(db_follow)
     return db_follow
 
-# ✅ Unfollow a user
-@router.delete("/{following_uid}", status_code=status.HTTP_204_NO_CONTENT)
+
+# -------------------------------------------------
+# Unfollow a user
+# -------------------------------------------------
+@router.delete("/{following_id}")
 def unfollow_user(
-    following_uid: str,
+    following_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
-    follow = db.query(Follow).filter_by(
-        follower_id=current_user.firebase_uid,
-        following_id=following_uid
-    ).first()
+    rel = (
+        db.query(Follow)
+        .filter(Follow.follower_id == current_user.id, Follow.following_id == following_id)
+        .first()
+    )
+    if not rel:
+        raise HTTPException(status_code=404, detail="Follow relationship not found")
 
-    if not follow:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Follow relationship not found"
-        )
-
-    db.delete(follow)
+    db.delete(rel)
     db.commit()
     return {"detail": "Unfollowed successfully"}
 
-# ✅ Get a user's following list
-@router.get("/following/{firebase_uid}", response_model=List[FollowResponse])
-def get_following(firebase_uid: str, db: Session = Depends(get_db)):
-    return db.query(Follow).filter_by(follower_id=firebase_uid).all()
 
-# ✅ Get a user's followers list
-@router.get("/followers/{firebase_uid}", response_model=List[FollowResponse])
-def get_followers(firebase_uid: str, db: Session = Depends(get_db)):
-    return db.query(Follow).filter_by(following_id=firebase_uid).all()
+# -------------------------------------------------
+# Users THIS user follows  (→ list of User summaries)
+# -------------------------------------------------
+@router.get("/following/{user_id}", response_model=List[FollowerFollowingResponse])
+def get_following(user_id: int, db: Session = Depends(get_db)):
+    # optional: 404 if base user doesn't exist
+    if not db.query(User.id).filter(User.id == user_id).first():
+        raise HTTPException(status_code=404, detail="User not found")
+
+    users_following = (
+        db.query(User)
+        .join(Follow, Follow.following_id == User.id)
+        .filter(Follow.follower_id == user_id)
+        .order_by(Follow.created_at.desc())
+        .all()
+    )
+
+    return [
+        FollowerFollowingResponse(
+            id=u.id,
+            firebase_uid=u.firebase_uid,
+            display_name=u.display_name or "",
+            avatar_url=u.avatar_url or "",
+        )
+        for u in users_following
+    ]
+
+
+# -------------------------------------------------
+# Followers OF this user  (→ list of User summaries)
+# -------------------------------------------------
+@router.get("/followers/{user_id}", response_model=List[FollowerFollowingResponse])
+def get_followers(user_id: int, db: Session = Depends(get_db)):
+    if not db.query(User.id).filter(User.id == user_id).first():
+        raise HTTPException(status_code=404, detail="User not found")
+
+    user_followers = (
+        db.query(User)
+        .join(Follow, Follow.follower_id == User.id)
+        .filter(Follow.following_id == user_id)
+        .order_by(Follow.created_at.desc())
+        .all()
+    )
+
+    return [
+        FollowerFollowingResponse(
+            id=u.id,
+            firebase_uid=u.firebase_uid,
+            display_name=u.display_name or "",
+            avatar_url=u.avatar_url or "",
+        )
+        for u in user_followers
+    ]

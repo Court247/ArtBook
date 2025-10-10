@@ -1,6 +1,77 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+
+## [1.0.9] - 2025-10-09
+
+### Added
+- Added `schema/post_flag.py` 
+- Added `models/post_flag.py`
+- Added `routers/post_flag.py` 
+- Added new relationship schema in `README.md`
+- Added new table `comment_likes`
+- Added `models/comment_like.py`
+  - keeps track of comment likes
+- Added `schema/comment_likes.py`
+- Added `routers/comment_likes.py`
+- Added `notifications `database table
+  - Notifies user of likes, comments, or follows. 
+- Added `repost` database table
+  - Allows users to repost and share posts.
+### Changed
+- Changed `db/schema.sql`
+  - `Users` table
+    - Added auto-incrementing `id` (primary key)
+    - Changed `firebase_uid` as `VARCHAR(128) UNIQUE NOT NULL`
+    - Removed defaults
+  - `Posts` table
+    - References `users(id) `
+    - Added `media_url` and `visibility`
+  - `Likes` table
+    - Has `UNIQUE` composite keys (`user_id`, `post_id` and `follower_id`, `following_id`)
+    - Proper cascading delete behavior
+  - `Follows` table
+    - Has `UNIQUE` composite keys (`user_id`, `post_id` and `follower_id`, `following_id`)
+    - Proper cascading delete behavior
+  - `Comments` table
+    - Links properly to both posts and users
+  - `Post_flag` table
+    - New moderation table (`reported_by`, `reason`, `reviewed`)
+- Changed `schemas/`files
+  - `schemas/user.py`
+    - Added `INT AUTO_INCREMENT` primary keys
+    - Keep `firebase_uid` as unique
+  - `schemas/comment.py`
+    - Added `INT AUTO_INCREMENT` primary keys
+    - Keep `firebase_uid` as unique
+  - `schemas/follow.py`
+    - Added `INT AUTO_INCREMENT` primary keys
+    - Keep `firebase_uid` as unique
+  - `schemas/like.py`
+    - Added `INT AUTO_INCREMENT` primary keys
+    - Keep `firebase_uid` as unique
+  - `schemas/post.py`
+    - Added `INT AUTO_INCREMENT` primary keys
+    - Keep `firebase_uid` as unique
+    - Include the new `visibility`and `media_url`
+  - `schemas/post_flag.py`
+    - Added `INT AUTO_INCREMENT` primary keys
+    - Keep `firebase_uid` as unique
+- Changed `models/` files
+  - Added `INT AUTO_INCREMENT` primary keys
+  - All relationships are consistent and cascade properly
+  - `visibility`, `post_flags`, and constraints are correct
+  - `firebase_uid` is still unique but not a PK
+- Changed `main.py`
+  - CORS safe
+- Changed `models/`
+  - `comment.py`
+    - Added new `like` relationship
+  - `users.py`
+    - Added new `commment_likes` relationship
+
+
+
 ## [1.0.8] - 2025-09-27
 
 ### Added

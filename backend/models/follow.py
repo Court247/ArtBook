@@ -1,20 +1,21 @@
-from sqlalchemy import Column, String, DateTime, ForeignKey, UniqueConstraint
+from sqlalchemy import Column, Integer, DateTime, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from db.database import Base
 
+
 class Follow(Base):
     __tablename__ = "follows"
 
-    id = Column(String(36), primary_key=True, index=True)  # UUID for follows
-    follower_id = Column(String(128), ForeignKey("users.firebase_uid", ondelete="CASCADE"), nullable=False)
-    following_id = Column(String(128), ForeignKey("users.firebase_uid", ondelete="CASCADE"), nullable=False)
+    id = Column(Integer, primary_key=True, autoincrement=True, index=True)
+    follower_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    following_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
 
-    # Relationships (self-referential many-to-many)
+    __table_args__ = (UniqueConstraint("follower_id", "following_id", name="unique_follow"),)
+
+    # Relationships
     follower = relationship("User", foreign_keys=[follower_id], back_populates="following")
     following = relationship("User", foreign_keys=[following_id], back_populates="followers")
-
-    __table_args__ = (
-        UniqueConstraint("follower_id", "following_id", name="unique_follow"),
-    )
+    # notifications = relationship("Notification", back_populates="follow", cascade="all, delete-orphan")
+    

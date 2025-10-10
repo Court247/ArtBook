@@ -1,4 +1,4 @@
-# 🌐 ArtBook (Monorepo) ![version](https://img.shields.io/badge/version-1.0.8-blue)
+# 🌐 ArtBook (Monorepo) ![version](https://img.shields.io/badge/version-1.0.9-blue)
 
 
 A full-stack, cross-platform social media application built with:
@@ -216,11 +216,60 @@ This folder contains reusable backend utilities that support your main API logic
 
 This project uses a relational schema:
 
-- `users`: Auth metadata, profile info
-- `posts`: Captions, image URLs
-- `likes`: User ↔ post interactions
-- `comments`: Replies on posts
-- `followers`: User ↔ user follows
+```
+`users
+ ├── id (PK, AUTO_INCREMENT)
+ ├── firebase_uid (UNIQUE)
+ ├── email (UNIQUE)
+ ├── display_name
+ ├── bio
+ ├── avatar_url
+ ├── role ENUM('creator', 'admin', 'premium', 'regular') DEFAULT 'regular'
+ ├── status ENUM('active', 'suspended', 'deleted', 'banned') DEFAULT 'active'
+ └── created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+
+
+posts
+ ├── id (PK, AUTO_INCREMENT)
+ ├── user_id → users.id
+ ├── content
+ ├── media_url
+ ├── visibility ENUM('public', 'private', 'followers') DEFAULT 'public'
+ └── created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+
+
+comments
+ ├── id (PK, AUTO_INCREMENT)
+ ├── post_id → posts.id
+ ├── user_id → users.id
+ ├── content
+ └── created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+
+
+likes
+ ├── id (PK, AUTO_INCREMENT)
+ ├── post_id → posts.id
+ ├── user_id → users.id
+ ├── created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+ └── UNIQUE (user_id, post_id)
+
+
+follows
+ ├── id (PK, AUTO_INCREMENT)
+ ├── follower_id → users.id
+ ├── following_id → users.id
+ ├── created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+ └── UNIQUE (follower_id, following_id)
+
+
+post_flags
+ ├── id (PK, AUTO_INCREMENT)
+ ├── post_id → posts.id
+ ├── reported_by → users.id
+ ├── reason
+ ├── reviewed BOOLEAN DEFAULT FALSE
+ └── created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+```
 
 See `/backend/db/schema.sql` for full schema.
 

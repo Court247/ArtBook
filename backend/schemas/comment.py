@@ -2,23 +2,26 @@ from pydantic import BaseModel
 from datetime import datetime
 from typing import Optional
 
-# ✅ Schema for creating a new comment
 
+# ---------- Base ----------
 class CommentBase(BaseModel):
     content: str
-class CommentCreate(BaseModel):
-    post_id: str
-    content: str
 
-# ✅ Schema for updating a comment
+
+# ---------- Create / Update ----------
+class CommentCreate(CommentBase):
+    post_id: int
+
+
 class CommentUpdate(BaseModel):
     content: Optional[str] = None
 
-# ✅ Schema for returning comments to the frontend
+
+# ---------- Response ----------
 class CommentResponse(BaseModel):
-    id: str
-    user_id: str
-    post_id: str
+    id: int
+    user_id: int
+    post_id: int
     content: str
     created_at: datetime
 

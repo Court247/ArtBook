@@ -1,10 +1,11 @@
-# models/users.py
-from sqlalchemy import Column, String, DateTime, Enum
+from sqlalchemy import Column, Integer, String, DateTime, Enum
 from datetime import datetime
 from db.database import Base
 import enum
 from sqlalchemy.orm import relationship
 
+
+# ---------- Enums ----------
 class RoleEnum(str, enum.Enum):
     creator = "creator"
     admin = "admin"
@@ -17,34 +18,21 @@ class StatusEnum(str, enum.Enum):
     deleted = "deleted"
     banned = "banned"
 
+
+# ---------- Model ----------
 class User(Base):
     __tablename__ = "users"
 
-    firebase_uid = Column(String(128), primary_key=True, index=True)
+    id = Column(Integer, primary_key=True, autoincrement=True, index=True)
+    firebase_uid = Column(String(128), unique=True, nullable=False)
     email = Column(String(255), unique=True, index=True, nullable=False)
     display_name = Column(String(255), nullable=True)
-    bio = Column(String, default="")
-    avatar_url = Column(String, default="")
+    bio = Column(String, nullable=True)
+    avatar_url = Column(String, nullable=True)
 
     role = Column(Enum(RoleEnum), nullable=False, default=RoleEnum.regular)
     status = Column(Enum(StatusEnum), nullable=False, default=StatusEnum.active)
-
     created_at = Column(DateTime, default=datetime.utcnow)
-
-    def is_creator(self) -> bool:
-        return self.role == RoleEnum.creator
-
-    def is_admin(self) -> bool:
-        return self.role in [RoleEnum.admin, RoleEnum.creator]
-
-    def is_active(self) -> bool:
-        return self.status == StatusEnum.active
-
-    def is_banned(self) -> bool:
-        return self.status == StatusEnum.banned
-
-    def is_suspended(self) -> bool:
-        return self.status == StatusEnum.suspended
 
     # Relationships
     posts = relationship("Post", back_populates="author", cascade="all, delete-orphan")
@@ -56,3 +44,7 @@ class User(Base):
     following = relationship(
         "Follow", foreign_keys="Follow.follower_id", back_populates="follower", cascade="all, delete-orphan"
     )
+    reports = relationship("PostFlag", back_populates="reporter", cascade="all, delete-orphan")
+    comment_likes = relationship("CommentLike", back_populates="user", cascade="all, delete-orphan")
+    # notifications = relationship("Notification", back_populates="user", cascade="all, delete-orphan")
+    

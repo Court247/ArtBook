@@ -1,18 +1,21 @@
-from sqlalchemy import Column, String, DateTime, ForeignKey, UniqueConstraint
-from db.database import Base
-from datetime import datetime
+from sqlalchemy import Column, Integer, DateTime, ForeignKey, UniqueConstraint
 from sqlalchemy.orm import relationship
+from datetime import datetime
+from db.database import Base
+
 
 class Like(Base):
     __tablename__ = "likes"
 
-    id = Column(String(36), primary_key=True, index=True)  # UUID for likes
-    user_id = Column(String(128), ForeignKey("users.firebase_uid", ondelete="CASCADE"))
-    post_id = Column(String(36), ForeignKey("posts.id", ondelete="CASCADE"))
+    id = Column(Integer, primary_key=True, autoincrement=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
+    post_id = Column(Integer, ForeignKey("posts.id", ondelete="CASCADE"), nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
 
-    __table_args__ = (UniqueConstraint("user_id", "post_id", name="unique_user_post"),)
-    
+    __table_args__ = (UniqueConstraint("user_id", "post_id", name="unique_like"),)
+
     # Relationships
     user = relationship("User", back_populates="likes")
-    post = relationship("Post", back_populates="likes") 
+    post = relationship("Post", back_populates="likes")
+   #comment = relationship("Comment", back_populates="likes")
+    # notifications = relationship("Notification", back_populates="like", cascade="all, delete-orphan")

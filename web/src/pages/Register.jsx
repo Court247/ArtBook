@@ -22,21 +22,24 @@ export default function Register() {
       const idToken = await user.getIdToken();
 
       // Send to backend
-      await axios.post(
-        "http://localhost:8000/users/",
-        {
-          firebase_uid: user.uid,
-          email: email,
-          display_name: displayName,
-          bio: "",
-          avatar_url: ""
+     await axios.post(
+      "http://localhost:8000/users/",
+      {
+        firebase_uid: user.uid,
+        email: email,
+        display_name: displayName,
+        bio: "",
+        avatar_url: "",
+      },
+      {
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${idToken}`,
         },
-        {
-          headers: {
-            Authorization: `Bearer ${idToken}`,
-          },
-        }
-      );
+        withCredentials: true, // optional if you want cookies later
+      }
+    );
+
 
       navigate("/home");
     } catch (err) {

@@ -1,86 +1,106 @@
 # utils/firebase_auth.py
+import os
 import firebase_admin
 from firebase_admin import credentials, auth
-from fastapi import Header, HTTPException
-from typing import Optional
-import os
-from models.users import User, StatusEnum
-from fastapi import Depends
+from fastapi import Depends, Header, HTTPException, status
 from sqlalchemy.orm import Session
-from db.database import get_db
+from typing import Optional
 
-# initialize app (keep your credential file path or env var)
-if not firebase_admin._apps:
-    cred_path = os.getenv("FIREBASE_CREDENTIALS_JSON", "artbook-20329-firebase-adminsdk-fbsvc-ddbc5c06ca.json")
+from db.database import get_db
+from models.users import User, StatusEnum, RoleEnum
+
+
+# -------------------------------------------------------------------
+# Firebase Admin Initialization (one-time, supports env + emulator)
+# -------------------------------------------------------------------
+def _init_firebase_if_needed() -> None:
+    if firebase_admin._apps:
+        return
+
+    # Emulator support (no credentials required)
+    emulator_host = os.getenv("FIREBASE_AUTH_EMULATOR_HOST")
+    if emulator_host:
+        firebase_admin.initialize_app(options={"projectId": os.getenv("FIREBASE_PROJECT_ID", "demo-project")})
+        return
+
+    # Service account path (prefer explicit env)
+    cred_path = (
+        os.getenv("FIREBASE_CREDENTIALS_JSON")
+        or os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+    )
+    if not cred_path or not os.path.exists(cred_path):
+        raise RuntimeError(
+            "Firebase credentials not found. "
+            "Set FIREBASE_CREDENTIALS_JSON or GOOGLE_APPLICATION_CREDENTIALS to a valid service account JSON."
+        )
+
     cred = credentials.Certificate(cred_path)
     firebase_admin.initialize_app(cred)
 
 
-def get_token_payload(authorization: str = Header(...)):
-    """
-    Verify Authorization header 'Bearer <token>' and return decoded token payload.
-    The decoded token should include any custom claims (admin, creator).
-    """
-    if not authorization or not authorization.startswith("Bearer "):
-        raise HTTPException(status_code=401, detail="Invalid or missing token format")
+_init_firebase_if_needed()
 
-    token = authorization.replace("Bearer ", "")
+
+# -------------------------------------------------------------------
+# Token / Auth helpers
+# -------------------------------------------------------------------
+def _extract_bearer_token(authorization: Optional[str]) -> str:
+    if not authorization:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Missing Authorization header"
+        )
+    if not authorization.startswith("Bearer "):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid Authorization format; expected 'Bearer <token>'"
+        )
+    return authorization.split(" ", 1)[1].strip()
+
+
+def get_token_payload(authorization: Optional[str] = Header(default=None)):
+    """
+    Verify 'Authorization: Bearer <Firebase_ID_Token>' and return a normalized payload.
+    Custom claims like 'admin' and 'creator' are included if set.
+    """
+    token = _extract_bearer_token(authorization)
     try:
         decoded = auth.verify_id_token(token)
-        # normalized payload for convenience
-        return {
-            "uid": decoded["uid"],
-            "email": decoded.get("email"),
-            # boolean flags that creators/admins can set as custom claims in Firebase
-            "admin": decoded.get("admin", False),
-            "creator": decoded.get("creator", False)
-        }
     except Exception:
-        raise HTTPException(status_code=401, detail="Invalid Firebase token")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid or expired Firebase token")
+
+    # Normalize the shape your routers expect
+    return {
+        "uid": decoded.get("uid"),
+        "email": decoded.get("email"),
+        "admin": bool(decoded.get("admin", False)),
+        "creator": bool(decoded.get("creator", False)),
+    }
 
 
-# permission helpers (based on token claims)
-def require_creator(payload: dict):
-    if not payload.get("creator", False):
-        raise HTTPException(status_code=403, detail="Creator privileges required")
-
-
-def require_admin(payload: dict):
-    # creators are also admins logically
-    if not (payload.get("admin", False) or payload.get("creator", False)):
-        raise HTTPException(status_code=403, detail="Admin privileges required")
-
-
-def require_self_or_admin(payload: dict, target_uid: str):
+def get_current_user(
+    payload: dict = Depends(get_token_payload),
+    db: Session = Depends(get_db),
+) -> User:
     """
-    Allow action if user is modifying their own account OR is admin/creator.
+    Resolve the logged-in User model by firebase_uid (unique), then enforce status.
     """
-    if payload.get("uid") == target_uid:
-        return
-    if payload.get("creator", False) or payload.get("admin", False):
-        return
-    raise HTTPException(status_code=403, detail="Not authorized to modify this user")
+    uid = payload.get("uid")
+    if not uid:
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid token payload (missing uid)")
+
+    user = db.query(User).filter(User.firebase_uid == uid).first()
+    if not user:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="User not found in database")
+
+    _enforce_user_status(user)
+    return user
 
 
-def forbid_admin_on_creator_db(target_user):
-    """
-    Given a target DB user (User instance), prevent admins from modifying creators.
-    (Relies on role in DB)
-    """
-    if getattr(target_user, "role", None) == "creator":
-        raise HTTPException(status_code=403, detail="Cannot modify creator account")
-
-
-def forbid_admin_on_admin_db(target_user, acting_payload):
-    """
-    Prevent admins (non-creator) from modifying other admins.
-    acting_payload is the token payload of the actor.
-    """
-    if getattr(target_user, "role", None) == "admin" and not acting_payload.get("creator", False):
-        raise HTTPException(status_code=403, detail="Admins cannot modify other admins")
-
-
-def enforce_user_status(user: User):
+# -------------------------------------------------------------------
+# Role/Status enforcement and admin/creator gating
+# -------------------------------------------------------------------
+def _enforce_user_status(user: User) -> None:
     if user.status == StatusEnum.deleted:
         raise HTTPException(status_code=403, detail="User account is deleted")
     if user.status == StatusEnum.suspended:
@@ -89,10 +109,51 @@ def enforce_user_status(user: User):
         raise HTTPException(status_code=403, detail="User account is banned")
 
 
-def set_custom_user_claims(uid: str, claims: dict):
+def require_creator(payload: dict) -> None:
+    if not bool(payload.get("creator", False)):
+        raise HTTPException(status_code=403, detail="Creator privileges required")
+
+
+def require_admin(payload: dict) -> None:
+    # Creators imply admin
+    if not (bool(payload.get("admin", False)) or bool(payload.get("creator", False))):
+        raise HTTPException(status_code=403, detail="Admin privileges required")
+
+
+def require_self_or_admin(payload: dict, target_uid: str) -> None:
     """
-    Wrap firebase_admin.auth.set_custom_user_claims
+    Allow if operating on own account, or if admin/creator.
     """
+    if payload.get("uid") == target_uid:
+        return
+    if payload.get("creator", False) or payload.get("admin", False):
+        return
+    raise HTTPException(status_code=403, detail="Not authorized to modify this user")
+
+
+def forbid_admin_on_creator_db(target_user: User) -> None:
+    """
+    Prevent a non-creator admin from modifying a creator account.
+    """
+    # Depending on how SQLAlchemy Enum is configured, role may be RoleEnum or str.
+    role_value = target_user.role.value if isinstance(target_user.role, RoleEnum) else target_user.role
+    if role_value == RoleEnum.creator.value:
+        raise HTTPException(status_code=403, detail="Cannot modify creator account")
+
+
+def forbid_admin_on_admin_db(target_user: User, acting_payload: dict) -> None:
+    """
+    Prevent an admin (non-creator) from modifying another admin.
+    """
+    role_value = target_user.role.value if isinstance(target_user.role, RoleEnum) else target_user.role
+    if role_value == RoleEnum.admin.value and not acting_payload.get("creator", False):
+        raise HTTPException(status_code=403, detail="Admins cannot modify other admins")
+
+
+# -------------------------------------------------------------------
+# Optional Firebase helpers used elsewhere
+# -------------------------------------------------------------------
+def set_custom_user_claims(uid: str, claims: dict) -> None:
     try:
         auth.set_custom_user_claims(uid, claims)
     except Exception as e:
@@ -100,27 +161,7 @@ def set_custom_user_claims(uid: str, claims: dict):
 
 
 def get_user_record(uid: str):
-    """Return firebase user record (optional helper)."""
     try:
         return auth.get_user(uid)
     except Exception as e:
         raise HTTPException(status_code=404, detail=f"Firebase user not found: {e}")
-
-
-def get_current_user(
-    payload: dict = Depends(get_token_payload),
-    db: Session = Depends(get_db)
-) -> User:
-    """
-    FastAPI dependency: get the current logged-in user from Firebase token + DB.
-    """
-    firebase_uid = payload["uid"]
-
-    user = db.query(User).filter(User.firebase_uid == firebase_uid).first()
-    if not user:
-        raise HTTPException(status_code=404, detail="User not found in database")
-
-    # Enforce status (active / banned / suspended / deleted)
-    enforce_user_status(user)
-
-    return user

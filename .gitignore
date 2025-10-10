@@ -31,7 +31,7 @@ backend/*.egg-info/
 backend/.mypy_cache/
 backend/.coverage
 backend/artbook-20329-firebase-adminsdk-fbsvc-ddbc5c06ca.json
-
+backend/artbook-20329-firebase-adminsdk-fbsvc-58baaa7576.json
 # ===============================
 # 🌐 WEB (React/Node.js)
 # ===============================

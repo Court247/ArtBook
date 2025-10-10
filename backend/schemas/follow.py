@@ -1,18 +1,24 @@
 from pydantic import BaseModel
 from datetime import datetime
 
-# ✅ Schema for creating a follow
-class FollowCreate(BaseModel):
-    following_id: int  # the user being followed
 
-# ✅ Schema for returning follow relationships
+# ---------- Create ----------
+class FollowCreate(BaseModel):
+    following_id: int
+
+
+# ---------- Response ----------
 class FollowResponse(BaseModel):
     id: int
     follower_id: int
     following_id: int
     created_at: datetime
 
-# ✅ Schema for returning follower/following lists
+    class Config:
+        from_attributes = True
+
+
+# ---------- Follower / Following Lists ----------
 class FollowerFollowingResponse(BaseModel):
     id: int
     firebase_uid: str
