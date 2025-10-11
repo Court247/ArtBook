@@ -131,26 +131,37 @@ ArtBook/
 ###  📂models/ — SQLAlchemy Database Models
 These define your MySQL table structure in Python using SQLAlchemy ORM.
 
-| File         | Purpose                                                                                       |
-| ------------ | --------------------------------------------------------------------------------------------- |
-| `user.py`    | Defines the `User` table — stores Firebase UID, email, profile data like avatar and bio.      |
-| `post.py`    | Defines the `Post` table — includes caption, image URL, user ID, and timestamp.               |
-| `comment.py` | Defines the `Comment` table — stores user comments linked to a post.                          |
-| `like.py`    | Defines the `Like` table — tracks which user liked which post (enforces uniqueness per pair). |
+| **File**           | **Purpose / Description**                                                                                                                                                                      |
+| ------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `user.py`          | Defines the `User` table — stores Firebase UID, email, display name, bio, avatar, and role/status. Establishes relationships to posts, comments, likes, followers, reposts, and notifications. |
+| `post.py`          | Defines the `Post` table — stores main post data including caption/content, media URL, visibility level, and author reference. Tracks likes, comments, reposts, reports, and notifications.    |
+| `comment.py`       | Defines the `Comment` table — stores user comments linked to a post; supports likes and notifications to post owners.                                                                          |
+| `like.py`          | Defines the `Like` table — tracks which user liked which post; enforces one-like-per-user-per-post via unique constraint.                                                                      |
+| `comment_like.py`  | Defines the `CommentLike` table — records users who liked specific comments; enforces one-like-per-user-per-comment rule.                                                                      |
+| `follow.py`        | Defines the `Follow` table — tracks user follow relationships (follower → following) with unique pair constraint.                                                                              |
+| `repost.py`        | Defines the `Repost` table — supports both simple and quote reposts; links reposting user to original post.                                                                                    |
+| `notifications.py` | Defines the `Notification` table — handles all notification types (`like`, `comment`, `follow`, `share`) with sender/recipient tracking.                                                       |
+| `post_flag.py`     | Defines the `PostFlag` table — manages user-generated reports on posts, including reason and review status.                                                                                    |
+
 
 ---
 
 ### 📂 routers/ — API Route Logic
 
 This folder holds all the FastAPI route definitions for each feature (users, posts, etc.). Each file maps to a logical feature in the app.
+| **File**           | **Purpose / Description**                                                                                                       |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------- |
+| `admin.py`         | Provides administrative routes for managing users, posts, and reports. Used for moderation and elevated admin controls.         |
+| `users.py`         | Handles user endpoints — retrieves user profiles, updates account information, and validates Firebase tokens.                   |
+| `posts.py`         | Manages post creation, deletion, and retrieval. Supports captions, media URLs, and visibility settings.                         |
+| `comments.py`      | Handles creation and retrieval of comments for specific posts; sends notifications to post authors when new comments are added. |
+| `comment_likes.py` | Allows users to like or unlike comments; triggers notifications to comment authors when liked.                                  |
+| `likes.py`         | Enables users to like or unlike posts; updates post like counts and triggers notifications to post owners.                      |
+| `follow.py`        | Manages following and unfollowing users; prevents self-following and sends notifications to followed users.                     |
+| `home.py`          | Builds personalized and random content feeds; aggregates posts, comments, and author data for the home page.                    |
+| `notifications.py` | Handles retrieval and management of notifications; allows marking notifications as read.                                        |
+| `repost.py`        | Manages simple reposts and quote reposts; triggers share notifications for original post authors.                               |
 
-| File          | Purpose                                                                                                 |
-| ------------- | ------------------------------------------------------------------------------------------------------- |
-| `users.py`    | Handles user endpoints: getting the current user, updating profile info, and Firebase token validation. |
-| `posts.py`    | Handles creation, deletion, and retrieval of posts. Posts include captions and image URLs.              |
-| `comments.py` | Adds and retrieves comments for specific posts.                                                         |
-| `likes.py`    | Lets users like or unlike a post, and returns the like count for a post.                                |
-| `admin.py`    | Dashboard for admin functions                                |
 
 ---
 
@@ -158,12 +169,16 @@ This folder holds all the FastAPI route definitions for each feature (users, pos
 ### 📂 schemas/ — Pydantic Schemas
 These define input and output shapes for API endpoints. They validate incoming request bodies and control what fields are returned in responses. Each schema works alongside its corresponding model and router to ensure data is clean and consistent across the API.
 
-| File         | Purpose                                                                        |
-| ------------ | ------------------------------------------------------------------------------ |
-| `user.py`    | Models user creation, update, and response formats.                            |
-| `post.py`    | Models the creation of posts and what data should be returned to the frontend. |
-| `comment.py` | Models comment creation and response formatting.                               |
-| `like.py`    | Controls response structure when liking a post or retrieving like info.        |
+| **File**           | **Purpose**                                                                                                                               |
+| ------------------ | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `user.py`          | Models user creation, update, and response formats — includes Firebase UID, profile info, and avatar fields.                              |
+| `post.py`          | Defines post creation, update, and response structures. Includes media URLs, captions, and feed response models for posts and authors.    |
+| `comment.py`       | Models comment creation and response data. Ensures consistent structure for user comments linked to posts.                                |
+| `comment_likes.py` | Handles creation and response formatting for comment likes. Defines comment-like structure with timestamps.                               |
+| `follow.py`        | Defines schemas for creating and returning follow relationships between users.                                                            |
+| `notifications.py` | Models notification creation and response formats for all event types (`like`, `comment`, `follow`, `share`).                             |
+| `post_flag.py`     | Models reporting schema for flagged posts — includes reason, reporter, and review status fields.                                          |
+| `repost.py`        | Defines schema for simple and quote reposts — includes `original_post_id`, optional `quote`, and `is_quote` flag for response formatting. |
 
 
 ---
@@ -171,9 +186,10 @@ These define input and output shapes for API endpoints. They validate incoming r
 This folder contains reusable backend utilities that support your main API logic. Use these to keep your main routers/ and main.py files clean and maintainable.
 
 
-| File               | Purpose                                                                                   |
-| ------------------ | ----------------------------------------------------------------------------------------- |
-| `firebase_auth.py` | Initializes Firebase Admin SDK and verifies user ID tokens. Required for authentication.  |
+| **File**           | **Purpose**                                                                                                                                                                                                                             |
+| ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `firebase_auth.py` | Initializes Firebase Admin SDK and verifies user ID tokens. Handles authentication and token validation for all protected routes. Supports Firebase emulator mode for local development.                                                |
+| `notifications.py` | Provides a reusable helper function `create_notification()` to generate notifications for all user interactions — likes, comments, follows, and reposts. Automatically prevents self-notifications and commits entries to the database. |
 | `image_upload.py`  | Uploads image files to Firebase Storage and returns public download URLs (used in posts). |
 
 ---
