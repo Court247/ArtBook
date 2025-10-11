@@ -82,6 +82,10 @@ CREATE TABLE post_flags (
 -- DROP TABLE IF EXISTS follows;
 -- DROP TABLE IF EXISTS posts;
 -- DROP TABLE IF EXISTS users;
+DROP TABLE IF EXISTS post_flags;
+DROP TABLE IF EXISTS notifications;
+DROP TABLE IF EXISTS comment_likes;
+DROP TABLE IF EXISTS reposts;
 
 -- ===========================
 -- COMMENT_LIKES TABLE
@@ -118,12 +122,26 @@ CREATE TABLE notifications (
 -- ===========================
 -- REPOST TABLE
 -- ===========================
+-- ✅ REPOSTS TABLE
 CREATE TABLE reposts (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,
     original_post_id INT NOT NULL,
     quote TEXT NULL,
+    is_quote BOOLEAN DEFAULT FALSE,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (original_post_id) REFERENCES posts(id) ON DELETE CASCADE
 );
+
+-- ===========================
+-- Add repost_id to comments and likes
+-- ===========================
+ALTER TABLE comments ADD COLUMN repost_id INT NULL;
+ALTER TABLE likes ADD COLUMN repost_id INT NULL;
+
+ALTER TABLE comments 
+  ADD FOREIGN KEY (repost_id) REFERENCES reposts(id) ON DELETE CASCADE;
+
+ALTER TABLE likes 
+  ADD FOREIGN KEY (repost_id) REFERENCES reposts(id) ON DELETE CASCADE;

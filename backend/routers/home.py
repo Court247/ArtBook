@@ -77,6 +77,7 @@ def get_feed(
                         content=c.content,
                         created_at=c.created_at,
                         user=FeedUser(
+                            id=comment_user.id,
                             firebase_uid=comment_user.firebase_uid,
                             display_name=comment_user.display_name,
                             avatar_url=comment_user.avatar_url,
@@ -97,6 +98,7 @@ def get_feed(
                 visibility=post.visibility,
                 created_at=post.created_at,
                 author=FeedUser(
+                    id=author.id,
                     firebase_uid=author.firebase_uid,
                     display_name=author.display_name,
                     avatar_url=author.avatar_url,

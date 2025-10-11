@@ -12,6 +12,7 @@ class RoleEnum(str, enum.Enum):
     premium = "premium"
     regular = "regular"
 
+
 class StatusEnum(str, enum.Enum):
     active = "active"
     suspended = "suspended"
@@ -46,5 +47,6 @@ class User(Base):
     )
     reports = relationship("PostFlag", back_populates="reporter", cascade="all, delete-orphan")
     comment_likes = relationship("CommentLike", back_populates="user", cascade="all, delete-orphan")
-    # notifications = relationship("Notification", back_populates="user", cascade="all, delete-orphan")
-    
+    reposts = relationship("Repost", back_populates="user", cascade="all, delete-orphan")
+    sent_notifications = relationship("Notification", foreign_keys="Notification.sender_id", back_populates="sender", cascade="all, delete-orphan")
+    received_notifications = relationship("Notification", foreign_keys="Notification.recipient_id", back_populates="recipient", cascade="all, delete-orphan")

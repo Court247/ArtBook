@@ -6,6 +6,7 @@ from models.post import Post
 from models.users import User
 from schemas.comment import CommentCreate, CommentResponse
 from utils.firebase_auth import get_current_user
+from utils.notifications import create_notification
 
 router = APIRouter(prefix="/comments", tags=["Comments"])
 
@@ -26,6 +27,15 @@ def create_comment(
         post_id=comment.post_id,
         content=comment.content,
     )
+    
+    create_notification(
+    db,
+    sender_id=current_user.id,
+    recipient_id=post.user_id,
+    notif_type="comment",
+    post_id=post.id,
+    message=f"{current_user.display_name or 'Someone'} commented on your post",
+)
     db.add(new_comment)
     db.commit()
     db.refresh(new_comment)

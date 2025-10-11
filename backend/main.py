@@ -12,7 +12,7 @@ from db.database import Base, engine
 # ⚠️ Initialize FastAPI app BEFORE importing firebase or routers
 app = FastAPI(
     title="ArtBook",
-    version="1.0.9",
+    version="1.0.10",
     description="FastAPI backend for ArtBook with Firebase Auth and MySQL.",
 )
 
@@ -55,6 +55,8 @@ from routers import (
     home as home_router,
     admin as admin_router,
     comment_likes as comment_likes_router,
+    notifications as notifications_router,
+    repost as repost_router,
 )
 
 app.include_router(users_router.router)
@@ -65,6 +67,10 @@ app.include_router(follow_router.router)
 app.include_router(home_router.router)
 app.include_router(admin_router.router)
 app.include_router(comment_likes_router.router)
+app.include_router(notifications_router.router)
+app.include_router(repost_router.router)
+
+
 
 
 # ---------------------------------------------------------

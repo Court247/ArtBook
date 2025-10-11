@@ -74,27 +74,7 @@ class PostResponse(BaseModel):
 
 
 # ---------- Feed / Expanded ----------
-class FeedComment(BaseModel):
-    id: int
-    content: str
-    created_at: datetime
-    user: UserPublic
-
-    class Config:
-        from_attributes = True
 
 
-class FeedPostResponse(BaseModel):
-    id: int
-    content: str
-    media_url: Optional[str]
-    visibility: str
-    created_at: datetime
-    author: UserPublic
-    likes_count: int
-    comments_count: int
-    liked_by_current_user: bool
-    recent_comments: List[FeedComment] = []
 
-    class Config:
-        from_attributes = True
+

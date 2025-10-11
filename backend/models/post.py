@@ -19,4 +19,5 @@ class Post(Base):
     likes = relationship("Like", back_populates="post", cascade="all, delete-orphan")
     comments = relationship("Comment", back_populates="post", cascade="all, delete-orphan")
     reports = relationship("PostFlag", back_populates="post", cascade="all, delete-orphan")
-    # notifications = relationship("Notification", back_populates="post", cascade="all, delete-orphan")
+    reposts = relationship("Repost", back_populates="original_post", cascade="all, delete-orphan")
+    notifications = relationship("Notification", back_populates="post", cascade="all, delete-orphan")

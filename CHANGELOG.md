@@ -2,6 +2,140 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.10]
+
+### Added
+- Added `routers/`
+  - `notifications.py`
+    - Added `/notifications` routes for retrieval and marking read.
+    - Connected to Pydantic response model.
+    - Unified ordering and pagination logic.
+  - `repost.py`
+    - Added repost + quote repost creation logic.
+    - Added notifications for original post author.
+    - Split endpoints for simple reposts and quote reposts.
+    - Added retrieval routes for user reposts and quotes separately.  
+- Added `schemas/`
+  - `notifications.py`
+    - New file created.
+    - Added `NotificationCreate` and `NotificationResponse` schemas.
+    - Covers all notification event types.
+  - `repost.py`
+    - New schema added for the repost/quote repost feature.
+    - Added `RepostCreate` model to handle `original_post_id` and optional `quote`.
+    - Added `RepostResponse` model for returning repost details (`id`, `user_id`, `original_post_id`, `quote`, `is_quote`, `created_at`).
+    - Integrated with repost router to support both simple and quote repost types.
+    - Configured `from_attributes = True` for ORM compatibility.
+- Added `utils/`
+  - `notificaitons.py`
+- Added `models/`
+  - `notifications.py`
+    - Rebuilt relationships to include `back_populates` for `Post` and `Comment`.
+    - Enum types standardized: (`like`, `comment`, `follow`, `share`).
+    - Ensured cross-model linkage consistency.
+  - `repost.py`
+    - Added new `Repost` model.
+    - Fields: `user_id`, `original_post_id`, `quote`, `is_quote`, `created_at`.
+    - Added relationships: `user`, `original_post`.
+    - Supports both simple reposts and quote reposts.
+
+### Changed
+- Changed in `utils/` folder
+  - `firebase_auth.py`
+    - Refactored Firebase initialization for cleaner error handling.
+    - Added lazy app initialization to prevent multiple Firebase app instances.
+    - Fixed incorrect environment variable (`FIREBASE_CRED_PATH` → `FIREBASE_AUTH_EMULATOR_HOST`) for emulator mode.
+    - Simplified token verification logic and unified with `get_current_user`.
+    - Improved return data to include Firebase UID mapping.
+  - notifications.py
+    - Added reusable `create_notification()` helper for universal event notifications.
+    - Implemented automatic self-notification prevention.
+    - Added support for all event types (`like`, `comment`, `follow`, `share`).
+    - Integrated commit and refresh handling for DB safety.
+    - Standardized notification creation across routers.
+- Changed in `database/` folder
+  - `database.py`
+    - Confirmed consistent `SessionLocal` and `engine` creation.
+    - Cleaned up base import and removed deprecated references.
+  - `schema.sql`
+    - Added full schema for reposts feature (`reposts` table).
+    - Retained all relationships and constraints with `ON DELETE CASCADE`.
+    - Added indexes for performance on `user_id` and `post_id`.
+    - Verified all foreign key references align with Firebase UID mapping.
+- Changed in `models/` folder
+  - `users.py`
+    - Expanded role and status enums (`creator`, `admin`, `premium`, `regular`).
+    - Added notification relationships (`sent_notifications`, `received_notifications`).
+    - Added `reposts` relationship (`reposts`) for new repost system.
+    - Cleaned follow relationships and cascade rules.
+  - `post.py`
+    - Added `reposts` relationship linking to `Repost` model.
+    - Added `notifications` relationship for event tracking.
+    - Verified `visibility` enum consistency (`public`, `private`, `followers`).
+  - `comment.py`
+    - Linked notifications to `comment` interactions.
+    - Confirmed one-to-many with `CommentLike`.
+    - Standardized naming to `author` instead of `user` for clarity.
+  - `like.py`
+    - Verified unique constraint (`user_id`, `post_id`).
+    - Retained clean relationship with `User` and `Post`.
+    - Confirmed notification trigger readiness for post likes.
+  - `comment_like.py`
+    - Added UniqueConstraint on (`user_id`, `comment_id`).
+    - Integrated relationship with `User` and `Comment`.
+    - Prepared for automatic notification creation.
+  - `follow.py`
+    - Confirmed cascade deletion.
+    - Integrated unique constraint (`follower_id`, `following_id`).
+    - Router now triggers “follow” notifications.
+- Changed in `schemas/`
+  - `user.py`
+    - Simplified user responses and made Firebase UID explicit.
+    - Unified field names to match DB (`display_name`, `avatar_url`).
+  - `post.py`
+    - Added fields for repost and embedded post display.
+    - Fixed duplicate `FeedUser`/`FeedPostResponse` definitions.
+    - Cleaned up validation and relationships.
+  - `comment.py`
+    - Standardized output with consistent field naming.
+    - Prepared for extended notifications integration.
+  - `comment_likes.py`
+    - Added `CommentLikeResponse` and `CommentLikeCreate`.
+    - Linked timestamps and user relationships.
+  - `follow.py`
+    - Added minimalistic Pydantic models for follow system consistency.
+  - `post_flag.py`
+    - Added optional `reason` field and audit-ready `reviewed` flag.
+- Changed in `routers/` 
+  - `admin.py`
+    - Confirmed consistent imports and route registration.
+  - `users.py`
+    - Integrated Firebase UID references throughout.
+    - Cleaned and simplified endpoints for fetching and updating user data.
+  - `posts.py`
+    - Verified post creation, editing, and visibility handling.
+    - Prepared for embedded repost display in feeds.
+  - `comments.py`
+    - Added notification trigger for post comments.
+    - Enforced `post_id` validation.
+    - Removed duplicate functions and cleaned route structure.
+  - `comment_likes.py`
+    - Removed duplicate route definitions that caused syntax errors.
+    - Unified into single toggle endpoint.
+    - Added notification trigger for comment author on like.
+  - `likes.py`
+    - Added notification trigger for post likes.
+    - Refactored toggle logic for idempotent like/unlike behavior.
+    - Cleaned imports and removed duplicate parentheses causing crash.
+  - `follow.py`
+    - Added notification trigger for new followers.
+    - Added duplication guard to prevent refollowing.
+    - Cleaned logic for self-follow prevention.
+  - `home.py`
+    - Fixed missing `id` in `FeedUser` construction.
+    - Cleaned random feed logic and ordering.
+  - `admin.py`
+    - Minor formatting and import cleanup.
 ## [1.0.9] - 2025-10-09
 
 ### Added

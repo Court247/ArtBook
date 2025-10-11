@@ -3,7 +3,6 @@ from sqlalchemy.orm import relationship
 from datetime import datetime
 from db.database import Base
 
-
 class Like(Base):
     __tablename__ = "likes"
 
@@ -17,5 +16,3 @@ class Like(Base):
     # Relationships
     user = relationship("User", back_populates="likes")
     post = relationship("Post", back_populates="likes")
-   #comment = relationship("Comment", back_populates="likes")
-    # notifications = relationship("Notification", back_populates="like", cascade="all, delete-orphan")

@@ -16,4 +16,6 @@ class Comment(Base):
     # Relationships
     author = relationship("User", back_populates="comments")
     post = relationship("Post", back_populates="comments")
-    comment_likes = relationship("CommentLike", back_populates="comment", cascade="all, delete-orphan")
+    likes = relationship("CommentLike", back_populates="comment", cascade="all, delete-orphan")
+    notifications = relationship("Notification", back_populates="comment", cascade="all, delete-orphan")
+    
