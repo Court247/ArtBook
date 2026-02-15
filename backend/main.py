@@ -2,14 +2,14 @@
 	from fastapi import FastAPI
 	from fastapi.middleware.cors import CORSMiddleware
 	
-	# �sT�,? Load environment variables (optional)
+	# Load environment variables (optional)
 	# from dotenv import load_dotenv
 	# load_dotenv()
 	
-	# dY� Initialize Database (do not move this)
+	# Initialize Database (do not move this)
 	from backend.models import model_comment as _comment_model, model_comment_like as _comment_like_model, model_follow as _follow_model, model_like as _like_model, model_notifications as _notifications_model, model_post as _post_model, model_post_flag as _post_flag_model, model_repost as _repost_model
-from backend.routers import router_admin as admin_router, router_comment_likes as comment_likes_router, router_comments as comments_router, router_follow as follow_router, router_home as home_router, router_likes as likes_router, router_notifications as notifications_router, router_posts as posts_router, router_repost as repost_router
-from db.database import Base, engine
+	from backend.routers import router_admin as admin_router, router_comment_likes as comment_likes_router, router_comments as comments_router, router_follow as follow_router, router_home as home_router, router_likes as likes_router, router_notifications as notifications_router, router_posts as posts_router, router_repost as repost_router
+	from db.database import Base, engine
 	
 	# �s��,? Initialize FastAPI app BEFORE importing firebase or routers
 	app = FastAPI(
@@ -82,4 +82,3 @@ from db.database import Base, engine
 	@app.get("/")
 	def root():
 	    return {"message": "ArtBook Backend is running dYs?"}
-

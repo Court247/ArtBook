@@ -19,6 +19,8 @@ router = APIRouter(prefix="/admin", tags=["Admin & Moderation"])
 # -----------------------------
 #  Core Admin Utilities
 # -----------------------------
+
+## Pulls up the admin dashboard. For only admin accounts. 
 @router.get("/dashboard")
 def admin_dashboard(payload: dict = Depends(get_token_payload), db: Session = Depends(get_db)):
     require_admin(payload)
@@ -29,14 +31,14 @@ def admin_dashboard(payload: dict = Depends(get_token_payload), db: Session = De
         db.commit()
     return {"message": "Welcome to the admin dashboard."}
 
-
+# Allows the Admin to find a specific user. 
 @router.get("/users", response_model=list)
 def list_all_users(payload: dict = Depends(get_token_payload), db: Session = Depends(get_db)):
     require_admin(payload)
     users = db.query(User).order_by(User.created_at.desc()).all()
     return [{"id": u.id, "email": u.email, "display_name": u.display_name, "role": u.role, "status": u.status} for u in users]
 
-
+# Allows admin to delete user account
 @router.delete("/users/{firebase_uid}")
 def delete_user(firebase_uid: str, payload: dict = Depends(get_token_payload), db: Session = Depends(get_db)):
     require_admin(payload)
@@ -51,7 +53,7 @@ def delete_user(firebase_uid: str, payload: dict = Depends(get_token_payload), d
     db.commit()
     return {"detail": f"User {firebase_uid} deleted"}
 
-
+# Allows creator to promote or demote users to/from admin status
 @router.post("/promote-user/{firebase_uid}")
 def promote_or_demote_user(
     firebase_uid: str,
@@ -90,6 +92,8 @@ def promote_or_demote_user(
 # -----------------------------
 #  Moderation: Post Flags
 # -----------------------------
+
+# Allows admin to look at reported flags. 
 @router.get("/flags/pending")
 def get_pending_flags(payload: dict = Depends(get_token_payload), db: Session = Depends(get_db)):
     """List all unreviewed post reports"""
@@ -111,7 +115,7 @@ def get_pending_flags(payload: dict = Depends(get_token_payload), db: Session = 
         for f in flags
     ]
 
-
+# Admins mark flags as reviewed
 @router.post("/flags/{flag_id}/review")
 def mark_flag_reviewed(
     flag_id: int,
@@ -128,7 +132,7 @@ def mark_flag_reviewed(
     db.commit()
     return {"detail": f"Flag {flag_id} marked as reviewed."}
 
-
+#Allows admin to delete flags
 @router.delete("/flags/{flag_id}")
 def delete_flag(
     flag_id: int,
@@ -148,6 +152,8 @@ def delete_flag(
 # -----------------------------
 #  Moderation: User Control
 # -----------------------------
+
+#Admin can suspend users
 @router.patch("/users/{user_id}/suspend")
 def suspend_user(
     user_id: int,
@@ -175,7 +181,7 @@ def suspend_user(
     db.refresh(user)
     return {"detail": f"User {user.display_name or user.email} {action}ed."}
 
-
+#Admin can restore users from banned or suspended status.
 @router.patch("/users/{user_id}/restore")
 def restore_user(
     user_id: int,
