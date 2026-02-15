@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from db.database import get_db
-from models.notifications import Notification
-from schemas.notifications import NotificationResponse
+from backend.models.model_notifications import Notification
+from backend.schemas.schema_notifications import NotificationResponse
 from utils.firebase_auth import get_current_user
-from models.users import User
+from backend.models.model_users import User
 
 router = APIRouter(prefix="/notifications", tags=["Notifications"])
 

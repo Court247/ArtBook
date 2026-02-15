@@ -1,5 +1,5 @@
 # utils/notifications.py
-from models.notifications import Notification
+from backend.models.model_notifications import Notification
 
 def create_notification(
     db,

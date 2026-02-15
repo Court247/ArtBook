@@ -2,8 +2,8 @@
 from fastapi import APIRouter, Depends, HTTPException, Body, status
 from sqlalchemy.orm import Session
 from db.database import get_db
-from models.users import User, RoleEnum, StatusEnum
-from models.post_flag import PostFlag
+from backend.models.model_users import User, RoleEnum, StatusEnum
+from backend.models.model_post_flag import PostFlag
 from utils.firebase_auth import (
     get_token_payload,
     require_admin,

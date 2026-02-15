@@ -1,11 +1,12 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Body
 from sqlalchemy.orm import Session
 from db.database import get_db
-from models.post import Post
-from models.post_flag import PostFlag
-from models.users import User
-from schemas.post import PostCreate, PostResponse
+from backend.models.model_post import Post
+from backend.models.model_post_flag import PostFlag
+from backend.models.model_users import User
+from backend.schemas.schema_post import PostCreate, PostResponse
 from utils.firebase_auth import get_current_user
+from typing import Optional
 
 router = APIRouter(prefix="/posts", tags=["Posts"])
 
@@ -63,6 +64,7 @@ def flag_post(
     post_id: int,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    reason: Optional[str] = Body(default=None),
 ):
     """Flag a post for moderation"""
     post = db.query(Post).filter(Post.id == post_id).first()
@@ -75,7 +77,7 @@ def flag_post(
     if existing_flag:
         raise HTTPException(status_code=400, detail="You already reported this post")
 
-    flag = PostFlag(post_id=post_id, reported_by=current_user.id)
+    flag = PostFlag(post_id=post_id, reported_by=current_user.id, reason=reason)
     db.add(flag)
     db.commit()
     db.refresh(flag)

@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from typing import Optional
 
 from db.database import get_db
-from models.users import User, StatusEnum, RoleEnum
+from backend.models.model_users import User, StatusEnum, RoleEnum
 
 
 # -------------------------------------------------------------------
@@ -27,6 +27,7 @@ def _init_firebase_if_needed() -> None:
     cred_path = (
         os.getenv("FIREBASE_CREDENTIALS_JSON")
         or os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+        or os.getenv("FIREBASE_CRED_PATH")
     )
     if not cred_path or not os.path.exists(cred_path):
         raise RuntimeError(

@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from db.database import get_db
-from models.comment import Comment
-from models.post import Post
-from models.users import User
-from schemas.comment import CommentCreate, CommentResponse
+from backend.models.model_comment import Comment
+from backend.models.model_post import Post
+from backend.models.model_users import User, RoleEnum
+from backend.schemas.schema_comment import CommentCreate, CommentResponse
 from utils.firebase_auth import get_current_user
 from utils.notifications import create_notification
 
@@ -58,7 +58,7 @@ def delete_comment(
     comment = db.query(Comment).filter(Comment.id == comment_id).first()
     if not comment:
         raise HTTPException(status_code=404, detail="Comment not found")
-    if comment.user_id != current_user.id and current_user.role not in ["creator", "admin"]:
+    if comment.user_id != current_user.id and current_user.role not in [RoleEnum.creator, RoleEnum.admin]:
         raise HTTPException(status_code=403, detail="Not authorized")
     db.delete(comment)
     db.commit()

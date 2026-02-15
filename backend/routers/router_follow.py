@@ -3,9 +3,9 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from typing import List
 from db.database import get_db
-from models.follow import Follow
-from models.users import User
-from schemas.follow import FollowCreate, FollowResponse, FollowerFollowingResponse
+from backend.models.model_follow import Follow
+from backend.models.model_users import User
+from backend.schemas.schema_follow import FollowCreate, FollowResponse, FollowerFollowingResponse
 from utils.firebase_auth import get_current_user
 from utils.notifications import create_notification
 

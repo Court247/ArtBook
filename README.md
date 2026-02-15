@@ -12,7 +12,7 @@ A full-stack, cross-platform social media application built with:
 
 This project is built and maintained as a **monorepo** for easier management and consistent development across platforms.
 
-📑 Table of Contents
+## 📑 Table of Contents
 
 1. ⚡ [Quickstart](#-quickstart)
 2. 🔑 [Environment Variables](#-environment-variables)

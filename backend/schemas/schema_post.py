@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 from datetime import datetime
 from typing import Optional, List, Literal
-from .user import UserPublic
+from .schema_user import UserPublic
 
 
 # ---------- Minimal user info used in feed or nested data ----------

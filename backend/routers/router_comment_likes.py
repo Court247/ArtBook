@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from db.database import get_db
-from models.comment_like import CommentLike
-from models.comment import Comment
-from models.users import User
-from schemas.comment_likes import CommentLikeCreate, CommentLikeResponse
+from backend.models.model_comment_like import CommentLike
+from backend.models.model_comment import Comment
+from backend.models.model_users import User
+from backend.schemas.schema_comment_likes import CommentLikeCreate, CommentLikeResponse
 from utils.firebase_auth import get_current_user
 from utils.notifications import create_notification
 
