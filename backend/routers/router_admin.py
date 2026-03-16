@@ -181,7 +181,7 @@ def suspend_user(
     db.refresh(user)
     return {"detail": f"User {user.display_name or user.email} {action}ed."}
 
-#Admin can restore users from banned or suspended status.
+#Admin can restore users from banned or suspended
 @router.patch("/users/{user_id}/restore")
 def restore_user(
     user_id: int,

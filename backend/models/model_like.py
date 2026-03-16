@@ -9,6 +9,7 @@ class Like(Base):
     id = Column(Integer, primary_key=True, autoincrement=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     post_id = Column(Integer, ForeignKey("posts.id", ondelete="CASCADE"), nullable=False)
+    repost_id = Column(Integer, ForeignKey("reposts.id", ondelete="CASCADE"), nullable=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     __table_args__ = (UniqueConstraint("user_id", "post_id", name="unique_like"),)

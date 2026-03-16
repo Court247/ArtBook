@@ -38,6 +38,11 @@ All notable changes to this project will be documented in this file.
     - Fields: `user_id`, `original_post_id`, `quote`, `is_quote`, `created_at`.
     - Added relationships: `user`, `original_post`.
     - Supports both simple reposts and quote reposts.
+    - Added `repostid`field
+  - `comment.py`
+    - Added `repostid` field
+  - `like.py`
+    - added `repostid` field
 
 ### Changed
 - Changed in `utils/` folder
@@ -136,6 +141,7 @@ All notable changes to this project will be documented in this file.
     - Cleaned random feed logic and ordering.
   - `admin.py`
     - Minor formatting and import cleanup.
+
 ## [1.0.9] - 2025-10-09
 
 ### Added

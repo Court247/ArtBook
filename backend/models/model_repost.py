@@ -15,4 +15,5 @@ class Repost(Base):
 
     user = relationship("User", back_populates="reposts")
     original_post = relationship("Post", back_populates="reposts")
-    #comments = relationship("Comment", back_populates="repost", cascade="all, delete-orphan")
+    comments = relationship("Comment", back_populates="repost", cascade="all, delete-orphan")
+    likes = relationship("Like", back_populates="repost", cascade="all, delete-orphan")
