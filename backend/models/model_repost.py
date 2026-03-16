@@ -13,6 +13,7 @@ class Repost(Base):
     is_quote = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.utcnow)
 
+    # Relationships
     user = relationship("User", back_populates="reposts")
     original_post = relationship("Post", back_populates="reposts")
     comments = relationship("Comment", back_populates="repost", cascade="all, delete-orphan")

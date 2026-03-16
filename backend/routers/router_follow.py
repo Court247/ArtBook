@@ -50,3 +50,7 @@ def follow_user(
     )
 
     return db_follow
+
+# -------------------------------------------------
+# Unfollow a user
+

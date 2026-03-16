@@ -21,6 +21,9 @@ export default function Register() {
       // Get Firebase ID token
       const idToken = await user.getIdToken();
 
+      // Store token in localStorage 
+      localStorage.setItem("token", idToken);
+
       // Send to backend
      await axios.post(
       "http://localhost:8000/users/",

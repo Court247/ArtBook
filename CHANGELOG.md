@@ -2,6 +2,66 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.11]
+
+### Added
+- Added `routers/`
+  - `likes.py`
+    - Added `toggle_repost_like` method. So that when reposted it's able to receive likes on the user that reposted it. 
+  - `comments.py`
+    - Added `repost_id` that derives from `post_id` when needed. So that the reposted post can receive it's own set of comments. 
+    - Added `list_repost_comments` method. Lists comments on the reposts posts
+
+- Added support for independent repost engagement system
+  - Users can now like posts and reposts separately
+  - Likes on reposts do NOT inherit from original posts
+
+- `models/model_like.py`
+  - Added `repost_id` field to allow likes on reposts
+  - Made `post_id` optional to support dual-like system
+
+- `schemas/schema_like.py`
+  - Updated `LikeCreate` schema to include optional:
+    - `post_id`
+    - `repost_id`
+
+- `routers/router_likes.py`
+  - Added unified `like_content` method
+    - Handles both post likes and repost likes
+    - Prevents liking both at the same time
+    - Prevents duplicate likes
+  - Added notification branching:
+    - `like_post` → notifies post owner
+    - `like_repost` → notifies repost owner
+
+- Independent repost engagement system:
+  - Users can now like original posts and reposts separately
+  - Repost likes no longer affect original post likes
+  - Notifications correctly target content owner (post vs repost)
+
+---
+
+### Changed
+- `README.md`
+  - Changed `.\env\Scripts\activate   # Windows` to `.\venv\Scripts\activate   # Windows`. So now there shouldn't be any errors when trying to load the environment. 
+
+- `routers/router_likes.py`
+  - Split like system into two independent endpoints:
+    - `/likes/post/{post_id}`
+    - `/likes/repost/{repost_id}`
+  - Ensured likes are stored separately using:
+    - `post_id` for posts
+    - `repost_id` for reposts
+  - Prevented cross-linking between post likes and repost likes
+
+- Changed routers/
+
+---
+
+### Fixed
+- Bug where liking a repost also liked the original post
+- Incorrect use of `original_post_id` in repost like logic
+
 ## [1.0.10]
 
 ### Added

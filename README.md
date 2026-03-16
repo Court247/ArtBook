@@ -51,7 +51,7 @@ cd ArtBook
 cd backend
 python -m venv venv
 source venv/bin/activate # Linux
-.\env\Scripts\activate   # Windows
+.\venv\Scripts\activate   # Windows
 
 # You only need to do this once, the first time you initialize the environment. 
 pip install -r requirements.txt 
