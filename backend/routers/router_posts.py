@@ -1,10 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException, Body
 from sqlalchemy.orm import Session
 from db.database import get_db
-from backend.models.model_post import Post
-from backend.models.model_post_flag import PostFlag
-from backend.models.model_users import User
-from backend.schemas.schema_post import PostCreate, PostResponse
+from models.model_post import Post
+from models.model_post_flag import PostFlag
+from models.model_users import User
+from schemas.schema_post import PostCreate, PostResponse
 from utils.firebase_auth import get_current_user
 from typing import Optional
 

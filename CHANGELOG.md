@@ -61,6 +61,7 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 - Bug where liking a repost also liked the original post
 - Incorrect use of `original_post_id` in repost like logic
+- Import bug for all `models/`, `utils/`, `routers/` and `main.py` files
 
 ## [1.0.10]
 

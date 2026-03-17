@@ -1,5 +1,6 @@
 from sqlalchemy import Column, Integer, Text, String, DateTime, Enum, ForeignKey
 from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
 from datetime import datetime
 from db.database import Base
 
@@ -12,7 +13,7 @@ class Post(Base):
     content = Column(Text, nullable=False)
     media_url = Column(String(500), nullable=True)
     visibility = Column(Enum("public", "private", "followers"), default="public", nullable=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     # Relationships
     author = relationship("User", back_populates="posts")

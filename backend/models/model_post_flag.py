@@ -1,5 +1,6 @@
 from sqlalchemy import Column, Integer, Text, Boolean, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
 from datetime import datetime
 from db.database import Base
 
@@ -12,7 +13,7 @@ class PostFlag(Base):
     reported_by = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     reason = Column(Text, nullable=True)
     reviewed = Column(Boolean, default=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     # Relationships
     post = relationship("Post", back_populates="reports")

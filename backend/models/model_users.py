@@ -3,7 +3,7 @@ from datetime import datetime
 from db.database import Base
 import enum
 from sqlalchemy.orm import relationship
-
+from sqlalchemy.sql import func
 
 # ---------- Enums ----------
 class RoleEnum(str, enum.Enum):
@@ -33,7 +33,7 @@ class User(Base):
 
     role = Column(Enum(RoleEnum), nullable=False, default=RoleEnum.regular)
     status = Column(Enum(StatusEnum), nullable=False, default=StatusEnum.active)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     # Relationships
     posts = relationship("Post", back_populates="author", cascade="all, delete-orphan")

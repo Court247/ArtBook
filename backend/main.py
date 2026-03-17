@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from db.database import Base, engine
 
 # Import ALL models so Base.metadata knows every table
-from backend.models import (
+from models import (
     model_users,
     model_post,
     model_comment,

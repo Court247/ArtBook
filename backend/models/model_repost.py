@@ -1,5 +1,6 @@
 from sqlalchemy import Column, Integer, Text, Boolean, DateTime, ForeignKey
 from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
 from datetime import datetime
 from db.database import Base
 
@@ -11,7 +12,7 @@ class Repost(Base):
     original_post_id = Column(Integer, ForeignKey("posts.id", ondelete="CASCADE"), nullable=False)
     quote = Column(Text, nullable=True)
     is_quote = Column(Boolean, default=False)
-    created_at = Column(DateTime, default=datetime.utcnow)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     # Relationships
     user = relationship("User", back_populates="reposts")

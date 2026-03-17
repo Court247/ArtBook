@@ -3,13 +3,13 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from db.database import get_db
-from backend.models.model_users import User
-from backend.models.model_post import Post
-from backend.models.model_follow import Follow
-from backend.models.model_like import Like
-from backend.models.model_comment import Comment
+from models.model_users import User
+from models.model_post import Post
+from models.model_follow import Follow
+from models.model_like import Like
+from models.model_comment import Comment
 from utils.firebase_auth import get_current_user
-from backend.schemas.schema_post import FeedPostResponse, FeedComment, FeedUser
+from schemas.schema_post import FeedPostResponse, FeedComment, FeedUser
 
 router = APIRouter(prefix="/home", tags=["Home / Feed"])
 
