@@ -11,7 +11,9 @@ from utils.notifications import create_notification
 
 router = APIRouter(prefix="/comments", tags=["Comments"])
 
-
+# -----------------------------
+#  Comments
+# -----------------------------
 @router.post("/", response_model=CommentResponse)
 def create_comment(
     comment: CommentCreate,
@@ -66,7 +68,9 @@ def create_comment(
     db.refresh(new_comment)
     return new_comment
 
-
+# -----------------------------
+#  Show comments
+# -----------------------------
 @router.get("/post/{post_id}", response_model=list[CommentResponse])
 def list_comments(post_id: int, db: Session = Depends(get_db)):
     """List comments for a post"""
@@ -77,7 +81,9 @@ def list_comments(post_id: int, db: Session = Depends(get_db)):
         .all()
     )
 
-
+# ------------------------------
+#  Show Comments on Reposts
+# ------------------------------
 @router.get("/repost/{repost_id}", response_model=list[CommentResponse])  # ✅ NEW
 def list_repost_comments(repost_id: int, db: Session = Depends(get_db)):
     """List comments specifically attached to a repost"""
@@ -88,7 +94,9 @@ def list_repost_comments(repost_id: int, db: Session = Depends(get_db)):
         .all()
     )
 
-
+# -----------------------------
+#  Delete Comment 
+# -----------------------------
 @router.delete("/{comment_id}")
 def delete_comment(
     comment_id: int,

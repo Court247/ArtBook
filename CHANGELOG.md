@@ -34,6 +34,14 @@ All notable changes to this project will be documented in this file.
     - `like_post` → notifies post owner
     - `like_repost` → notifies repost owner
 
+- `routers/router_follow.py`
+  - Added unfollow users
+  - Added get followers
+  - Added get following
+
+- `routers/`
+  - Added comments to all `routers/` files
+  
 - Independent repost engagement system:
   - Users can now like original posts and reposts separately
   - Repost likes no longer affect original post likes

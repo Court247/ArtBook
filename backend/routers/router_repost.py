@@ -11,6 +11,10 @@ from utils.notifications import create_notification
 
 router = APIRouter(prefix="/reposts", tags=["Reposts"])
 
+# ----------------------------------------
+# Create and manage reposts
+# ----------------------------------------
+
 @router.post("/", response_model=RepostResponse)
 def create_repost(
     data: RepostCreate,
@@ -58,6 +62,9 @@ def create_repost(
 
     return repost
 
+# ----------------------------------------
+# Get user reposts
+# ----------------------------------------
 @router.get("/user/{user_id}", response_model=list[RepostResponse])
 def get_user_reposts(user_id: int, db: Session = Depends(get_db)):
     """Show all simple reposts for a given user (no quotes)."""
@@ -68,7 +75,9 @@ def get_user_reposts(user_id: int, db: Session = Depends(get_db)):
         .all()
     )
 
-
+# ----------------------------------------
+# Get user quote reposts
+# 
 @router.get("/quotes/{user_id}", response_model=list[RepostResponse])
 def get_user_quote_reposts(user_id: int, db: Session = Depends(get_db)):
     """Show all quote reposts for a given user."""

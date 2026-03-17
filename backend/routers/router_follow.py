@@ -53,4 +53,50 @@ def follow_user(
 
 # -------------------------------------------------
 # Unfollow a user
+# -------------------------------------------------
+
+@router.delete("/{following_id}", status_code=204)
+def unfollow_user(
+    following_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    follow = (
+        db.query(Follow)
+        .filter(Follow.follower_id == current_user.id, Follow.following_id == following_id)
+        .first()
+    )
+    if not follow:
+        raise HTTPException(status_code=404, detail="Follow relationship not found")
+
+    db.delete(follow)
+    db.commit()
+
+# -------------------------------------------------
+# Get followers of a user
+# -------------------------------------------------
+@router.get("/followers/{user_id}", response_model=List[FollowerFollowingResponse])
+def get_followers(user_id: int, db: Session = Depends(get_db)):
+    followers = (
+        db.query(User.id, User.display_name, User.profile_picture)
+        .join(Follow, Follow.follower_id == User.id)
+        .filter(Follow.following_id == user_id)
+        .all()
+    )
+    return followers
+
+# -------------------------------------------------
+# Get following of a user
+# -------------------------------------------------
+@router.get("/following/{user_id}", response_model=List[FollowerFollowingResponse])
+def get_following(user_id: int, db: Session = Depends(get_db)):
+    following = (
+        db.query(User.id, User.display_name, User.profile_picture)
+        .join(Follow, Follow.following_id == User.id)
+        .filter(Follow.follower_id == user_id)
+        .all()
+    )
+    return following
+
+
 

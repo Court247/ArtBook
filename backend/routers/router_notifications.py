@@ -8,6 +8,9 @@ from models.model_users import User
 
 router = APIRouter(prefix="/notifications", tags=["Notifications"])
 
+# -------------------------------------------------
+# Get and manage notifications
+# -------------------------------------------------
 @router.get("/", response_model=list[NotificationResponse])
 def get_my_notifications(
     db: Session = Depends(get_db),
@@ -22,7 +25,9 @@ def get_my_notifications(
         .all()
     )
 
-
+# -------------------------------------------------
+# Mark notifications as read
+# -------------------------------------------------
 @router.patch("/{notification_id}/read")
 def mark_as_read(
     notification_id: int,

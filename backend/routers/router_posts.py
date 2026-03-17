@@ -10,7 +10,9 @@ from typing import Optional
 
 router = APIRouter(prefix="/posts", tags=["Posts"])
 
-
+#-------------------------------------------------
+# Create, read, delete, and flag posts
+#-------------------------------------------------
 @router.post("/", response_model=PostResponse)
 def create_post(
     post_data: PostCreate,
@@ -29,19 +31,25 @@ def create_post(
     db.refresh(post)
     return post
 
-
+#-------------------------------------------------
+# Get recent posts and manage them
+#-------------------------------------------------
 @router.get("/", response_model=list[PostResponse])
 def get_recent_posts(db: Session = Depends(get_db)):
     """Get latest public posts"""
     return db.query(Post).order_by(Post.created_at.desc()).limit(20).all()
 
-
+#-------------------------------------------------
+# Get posts by user and delete
+#-------------------------------------------------
 @router.get("/user/{user_id}", response_model=list[PostResponse])
 def get_user_posts(user_id: int, db: Session = Depends(get_db)):
     """List posts by a user"""
     return db.query(Post).filter(Post.user_id == user_id).order_by(Post.created_at.desc()).all()
 
-
+#-------------------------------------------------
+# Delete posts
+#-------------------------------------------------
 @router.delete("/{post_id}")
 def delete_post(
     post_id: int,
@@ -58,7 +66,9 @@ def delete_post(
     db.commit()
     return {"detail": "Post deleted"}
 
-
+#-------------------------------------------------
+# Flag posts for moderation
+#-------------------------------------------------
 @router.post("/{post_id}/flag")
 def flag_post(
     post_id: int,

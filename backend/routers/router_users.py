@@ -13,7 +13,9 @@ from utils.firebase_auth import (
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
-
+# ----------------------------------------
+# User management
+# ----------------------------------------
 @router.post("/", response_model=UserResponse)
 def create_user(user: UserCreate, db: Session = Depends(get_db)):
     """Create a user record after Firebase signup"""
@@ -36,13 +38,17 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
     db.refresh(new_user)
     return new_user
 
-
+# ----------------------------------------
+# Get current user
+# ----------------------------------------
 @router.get("/me", response_model=UserResponse)
 def get_me(current_user: User = Depends(get_current_user)):
     """Get the currently authenticated user"""
     return current_user
 
-
+# ----------------------------------------
+# Update user (self or admin)
+# ----------------------------------------
 @router.put("/{firebase_uid}", response_model=UserResponse)
 def update_user(
     firebase_uid: str,

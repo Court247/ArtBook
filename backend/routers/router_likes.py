@@ -15,8 +15,9 @@ router = APIRouter(
     tags=["Likes"]
 )
 
-
+# -------------------------------------------------
 # Like and unliking posts
+# -------------------------------------------------
 @router.post("/post/{post_id}")
 def toggle_like(
     post_id: int,
@@ -65,8 +66,9 @@ def toggle_like(
 
     return {"liked": True}
 
-
-# Like and unliking reposts (independent from post likes)
+# -------------------------------------------------
+# Like and unliking reposts 
+# -------------------------------------------------
 @router.post("/repost/{repost_id}")
 def toggle_repost_like(
     repost_id: int,

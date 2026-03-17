@@ -10,6 +10,10 @@ from utils.notifications import create_notification
 
 router = APIRouter(prefix="/comment-likes", tags=["Comment Likes"])
 
+# -----------------------------
+#  Comment Like Endpoints
+# -----------------------------
+
 @router.post("/", response_model=CommentLikeResponse)
 def toggle_comment_like(
     data: CommentLikeCreate,
@@ -51,6 +55,10 @@ def toggle_comment_like(
 
     return new_like
 
+
+# -----------------------------
+#  Get comment like count
+# -----------------------------
 @router.get("/count/{comment_id}")
 def get_comment_like_count(comment_id: int, db: Session = Depends(get_db)):
     """Count likes for a specific comment"""
