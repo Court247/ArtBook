@@ -46,7 +46,7 @@ import utils.firebase_auth  # noqa: F401
 Base.metadata.create_all(bind=engine)
 
 # Routers
-from backend.routers import (
+from routers import (
     router_users,
     router_posts,
     router_comments,
