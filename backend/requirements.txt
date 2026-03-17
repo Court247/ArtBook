@@ -5,3 +5,5 @@ firebase-admin
 python-dotenv
 mysqlclient
 pymysql
+pydantic[email]
+
