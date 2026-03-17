@@ -56,6 +56,7 @@ source venv/bin/activate # Linux
 # You only need to do this once, the first time you initialize the environment. 
 pip install -r requirements.txt 
 
+# Be sure to remain in the backend folder
 uvicorn main:app --reload
 ```
 → Visit [FastAPI](http://localhost:8000/docs)

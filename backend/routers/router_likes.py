@@ -2,10 +2,10 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from db.database import get_db
-from backend.models.model_like import Like
-from backend.models.model_post import Post
-from backend.models.model_repost import Repost
-from backend.models.model_users import User
+from models.model_like import Like
+from models.model_post import Post
+from models.model_repost import Repost
+from models.model_users import User
 
 from utils.firebase_auth import get_current_user
 from utils.notifications import create_notification
