@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 from typing import Optional
 
 from db.database import get_db
-from backend.models.model_users import User, StatusEnum, RoleEnum
+from models.model_users import User, StatusEnum, RoleEnum
 
 
 # -------------------------------------------------------------------

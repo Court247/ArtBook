@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from db.database import get_db
-from backend.models.model_users import User, StatusEnum
-from backend.schemas.schema_user import UserCreate, UserUpdate, UserResponse
+from models.model_users import User, StatusEnum
+from schemas.schema_user import UserCreate, UserUpdate, UserResponse
 from utils.firebase_auth import (
     get_token_payload,
     get_current_user,

@@ -1,11 +1,11 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from db.database import get_db
-from backend.models.model_comment import Comment
-from backend.models.model_post import Post
-from backend.models.model_repost import Repost  # ✅ NEW
-from backend.models.model_users import User, RoleEnum
-from backend.schemas.schema_comment import CommentCreate, CommentResponse
+from models.model_comment import Comment
+from models.model_post import Post
+from models.model_repost import Repost  # ✅ NEW
+from models.model_users import User, RoleEnum
+from schemas.schema_comment import CommentCreate, CommentResponse
 from utils.firebase_auth import get_current_user
 from utils.notifications import create_notification
 

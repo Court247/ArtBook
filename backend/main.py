@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from db.database import Base, engine
 
 # Import ALL models so Base.metadata knows every table
-from backend.models import (
+from models import (
     model_users,
     model_post,
     model_comment,
@@ -46,7 +46,7 @@ import utils.firebase_auth  # noqa: F401
 Base.metadata.create_all(bind=engine)
 
 # Routers
-from backend.routers import (
+from routers import (
     router_users,
     router_posts,
     router_comments,
