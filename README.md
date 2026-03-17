@@ -367,5 +367,5 @@ All rights reserved. Closed source, not for redistribution. You may not use, cop
 
 # Author
 
-Courtney Woods
-email: courtney.woodsjobs@gmail.com
+Courtney Woods  
+Email: courtney.woodsjobs@gmail.com
