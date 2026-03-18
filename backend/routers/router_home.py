@@ -8,6 +8,7 @@ from models.model_post import Post
 from models.model_follow import Follow
 from models.model_like import Like
 from models.model_comment import Comment
+from models.model_repost import Repost
 from utils.firebase_auth import get_current_user
 from schemas.schema_post import FeedPostResponse, FeedComment, FeedUser
 
@@ -187,15 +188,24 @@ def get_activity(
     """
     Get recent activity for the current user (likes & followers).
     """
-    recent_likes = (
+    post_likes = (
         db.query(Like)
         .join(Post, Like.post_id == Post.id)
         .filter(Post.user_id == current_user.id)
+        .all()
+    )
+
+    repost_likes = (
+        db.query(Like)
+        .join(Repost, Like.repost_id == Repost.id)
+        .filter(Repost.user_id == current_user.id)
         .order_by(Like.created_at.desc())
         .limit(15)
         .all()
     )
 
+    all_likes = sorted(post_likes + repost_likes, key=lambda l: l.created_at, reverse=True)[:15]
+    
     recent_followers = (
         db.query(Follow)
         .filter(Follow.following_id == current_user.id)
@@ -206,8 +216,8 @@ def get_activity(
 
     return {
         "likes": [
-            {"user_id": l.user_id, "post_id": l.post_id, "created_at": l.created_at}
-            for l in recent_likes
+            {"user_id": l.user_id, "post_id": l.post_id, "repost_id": l.repost_id, "created_at": l.created_at}
+            for l in all_likes
         ],
         "followers": [
             {"follower_id": f.follower_id, "created_at": f.created_at}
@@ -230,13 +240,22 @@ def get_user_stats(
     post_count = db.query(func.count(Post.id)).filter(Post.user_id == current_user.id).scalar()
     follower_count = db.query(func.count(Follow.id)).filter(Follow.following_id == current_user.id).scalar()
     following_count = db.query(func.count(Follow.id)).filter(Follow.follower_id == current_user.id).scalar()
-    like_count = (
+    post_like_count = (
         db.query(func.count(Like.id))
         .join(Post, Like.post_id == Post.id)
         .filter(Post.user_id == current_user.id)
         .scalar()
     )
 
+    repost_like_count = (
+        db.query(func.count(Like.id))
+        .join(Repost, Like.repost_id == Repost.id)
+        .filter(Repost.user_id == current_user.id)
+        .scalar()
+    )
+        
+    like_count = post_like_count + repost_like_count
+    
     return {
         "posts": post_count,
         "followers": follower_count,

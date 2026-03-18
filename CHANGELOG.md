@@ -1,6 +1,31 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [1.0.13]
+
+### Fixed
+- `models/model_like.py`
+  - Added `ondelete="CASCADE"` to `post_id` and `repost_id` foreign keys — previously orphaned `Like` rows remained in the database when a post or repost was deleted
+  - Added `UniqueConstraint("user_id", "repost_id", name="unique_repost_like")` to prevent users from liking the same repost multiple times (only `(user_id, post_id)` was previously constrained)
+
+- `models/model_notifications.py`
+  - Added `back_populates="received_notifications"` to `recipient` relationship
+  - Added `back_populates="sent_notifications"` to `sender` relationship
+  - Fixes SQLAlchemy `SAWarning` raised at startup due to mismatched bidirectional relationships with `User.received_notifications` and `User.sent_notifications`
+
+- `routers/router_comment_likes.py`
+  - Unlike branch now returns a `JSONResponse` instead of a plain dict — previously FastAPI attempted to validate `{"detail": "Comment unliked"}` against `CommentLikeResponse`, causing a runtime validation error on every unlike action
+
+- `routers/router_home.py`
+  - `GET /home/activity` now includes likes on the current user's reposts in addition to likes on their posts — previously repost likes were silently excluded from activity results
+  - `GET /home/stats` `likes` count now includes likes received on reposts — previously only post likes were counted, underreporting total likes for users who receive engagement on reposts
+  - Activity response now includes `repost_id` field alongside `post_id` for each like entry
+
+- `routers/router_repost.py`
+  - Removed unused `from models.model_notifications import Notification` import
+
+---
+
 ## [1.0.12]
 
 ### Added

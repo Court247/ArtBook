@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
+from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from db.database import get_db
 from models.model_comment_like import CommentLike
@@ -37,8 +38,8 @@ def toggle_comment_like(
     if existing:
         db.delete(existing)
         db.commit()
-        return {"detail": "Comment unliked"}
-
+        return JSONResponse(content={"detail": "Comment unliked"})
+    
     new_like = CommentLike(user_id=current_user.id, comment_id=data.comment_id)
     db.add(new_like)
     db.commit()

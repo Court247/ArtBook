@@ -4,7 +4,6 @@ from db.database import get_db
 from models.model_repost import Repost
 from models.model_post import Post
 from models.model_users import User
-from models.model_notifications import Notification
 from schemas.schema_repost import RepostCreate, RepostResponse
 from utils.firebase_auth import get_current_user
 from utils.notifications import create_notification
