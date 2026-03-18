@@ -1,6 +1,47 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [1.0.12]
+
+### Added
+- `routers/router_admin.py`
+  - Added `GET /admin/posts` endpoint to list all posts (admin-only)
+  - Added `GET /admin/flagged-posts` endpoint to list all flags with associated post content (admin-only)
+  - Added `DELETE /admin/posts/{post_id}` endpoint allowing admins to delete any post
+
+---
+
+### Changed
+- `models/model_notifications.py`
+  - Expanded `type` enum to include `like_post` and `like_repost` variants used by the likes router
+  - Added `repost_id` FK column referencing `reposts.id` with `ON DELETE CASCADE`
+  - Added `repost` relationship with `back_populates="notifications"`
+
+- `models/model_repost.py`
+  - Added `notifications` relationship to `Repost` model with `cascade="all, delete-orphan"`
+
+- `schemas/schema_notifications.py`
+  - Added optional `repost_id` field to both `NotificationCreate` and `NotificationResponse`
+
+- `utils/notifications.py`
+  - Added `repost_id` parameter to `create_notification()` helper and passed it through to the `Notification` object
+
+- `db/schema.sql`
+  - Added `repost_id` column to `notifications` table with FK to `reposts(id) ON DELETE CASCADE`
+  - Expanded `type` ENUM to include `like_post` and `like_repost`
+
+- `main.py`
+  - Updated version to `1.0.12`
+
+---
+
+### Fixed
+- `routers/router_follow.py`
+  - Fixed `User.profile_picture` reference (column does not exist on the model) → corrected to `User.avatar_url`
+  - Added missing `User.firebase_uid` to follower/following queries to satisfy the `FollowerFollowingResponse` schema
+
+- `routers/router_likes.py`
+  - Calling `create_notification()` with `repost_id` keyword no longer raises `TypeError: unexpected keyword argument` (fixed by adding the parameter to the helper)
 
 ## [1.0.11]
 

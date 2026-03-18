@@ -19,7 +19,7 @@ from models import (
 
 app = FastAPI(
     title="ArtBook",
-    version="1.0.10",
+    version="1.0.12",
     description="FastAPI backend for ArtBook with Firebase Auth and MySQL.",
 )
 

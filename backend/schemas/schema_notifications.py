@@ -10,6 +10,7 @@ class NotificationCreate(BaseModel):
     type: str
     post_id: Optional[int] = None
     comment_id: Optional[int] = None
+    repost_id: Optional[int] = None
     message: Optional[str] = None
 
 
@@ -21,6 +22,7 @@ class NotificationResponse(BaseModel):
     message: Optional[str]
     post_id: Optional[int]
     comment_id: Optional[int]
+    repost_id: Optional[int]
     is_read: bool
     created_at: datetime
 

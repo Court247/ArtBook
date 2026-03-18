@@ -103,20 +103,23 @@ CREATE TABLE comment_likes (
 -- ===========================
 -- NOTIFICATIONS TABLE
 -- ===========================
+USE ArtBook;
 CREATE TABLE notifications (
     id INT AUTO_INCREMENT PRIMARY KEY,
     recipient_id INT NOT NULL,        -- who receives it
     sender_id INT NOT NULL,           -- who triggered it
-    type ENUM('like', 'comment', 'follow', 'share') NOT NULL,
+    type ENUM('like', 'like_post', 'like_repost', 'comment', 'follow', 'share') NOT NULL,
     post_id INT NULL,                 -- optional: which post
     comment_id INT NULL,              -- optional: which comment
+    repost_id INT NULL,               -- optional: which repost
     message TEXT,
     is_read BOOLEAN DEFAULT FALSE,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (recipient_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE,
-    FOREIGN KEY (comment_id) REFERENCES comments(id) ON DELETE CASCADE
+    FOREIGN KEY (comment_id) REFERENCES comments(id) ON DELETE CASCADE,
+    FOREIGN KEY (repost_id) REFERENCES reposts(id) ON DELETE CASCADE
 );
 
 -- ===========================

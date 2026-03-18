@@ -9,6 +9,7 @@ def create_notification(
     message: str,
     post_id: int = None,
     comment_id: int = None,
+    repost_id: int = None,
 ):
     """
     Generic reusable notification creator.
@@ -24,6 +25,7 @@ def create_notification(
         type=notif_type,
         post_id=post_id,
         comment_id=comment_id,
+        repost_id=repost_id,
         message=message,
     )
     db.add(notif)

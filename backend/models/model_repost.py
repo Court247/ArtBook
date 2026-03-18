@@ -19,3 +19,4 @@ class Repost(Base):
     original_post = relationship("Post", back_populates="reposts")
     comments = relationship("Comment", back_populates="repost", cascade="all, delete-orphan")
     likes = relationship("Like", back_populates="repost", cascade="all, delete-orphan")
+    notifications = relationship("Notification", back_populates="repost", cascade="all, delete-orphan")

@@ -38,6 +38,61 @@ def list_all_users(payload: dict = Depends(get_token_payload), db: Session = Dep
     users = db.query(User).order_by(User.created_at.desc()).all()
     return [{"id": u.id, "email": u.email, "display_name": u.display_name, "role": u.role, "status": u.status} for u in users]
 
+# Allows the Admin to see all posts
+@router.get("/posts", response_model=list)
+def list_all_posts(payload: dict = Depends(get_token_payload), db: Session = Depends(get_db)):
+    require_admin(payload)
+    posts = db.query(Post).order_by(Post.created_at.desc()).all()
+    return [
+        {
+            "id": p.id,
+            "user_id": p.user_id,
+            "content": p.content,
+            "media_url": p.media_url,
+            "visibility": p.visibility,
+            "created_at": p.created_at,
+        }
+        for p in posts
+    ]
+
+# Allows the Admin to see flagged posts with flag details
+@router.get("/flagged-posts", response_model=list)
+def list_flagged_posts(payload: dict = Depends(get_token_payload), db: Session = Depends(get_db)):
+    require_admin(payload)
+    flags = (
+        db.query(PostFlag)
+        .order_by(PostFlag.created_at.desc())
+        .all()
+    )
+    result = []
+    for f in flags:
+        post = db.query(Post).filter(Post.id == f.post_id).first()
+        result.append({
+            "flag_id": f.id,
+            "post_id": f.post_id,
+            "post_content": post.content if post else None,
+            "reported_by": f.reported_by,
+            "reason": f.reason,
+            "reviewed": f.reviewed,
+            "created_at": f.created_at,
+        })
+    return result
+
+# Allows admin to delete any post
+@router.delete("/posts/{post_id}")
+def admin_delete_post(
+    post_id: int,
+    payload: dict = Depends(get_token_payload),
+    db: Session = Depends(get_db),
+):
+    require_admin(payload)
+    post = db.query(Post).filter(Post.id == post_id).first()
+    if not post:
+        raise HTTPException(status_code=404, detail="Post not found")
+    db.delete(post)
+    db.commit()
+    return {"detail": f"Post {post_id} deleted by admin"}
+
 # Allows admin to delete user account
 @router.delete("/users/{firebase_uid}")
 def delete_user(firebase_uid: str, payload: dict = Depends(get_token_payload), db: Session = Depends(get_db)):

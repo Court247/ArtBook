@@ -63,7 +63,7 @@ def unfollow_user(
 ):
     follow = (
         db.query(Follow)
-        .filter(Follow.follower_id == current_user.id, Follow.following_id == following_id)
+        .filter(Follow.follower_id == current_user.id, Follow.following_id == follow.following_id)
         .first()
     )
     if not follow:
@@ -78,7 +78,7 @@ def unfollow_user(
 @router.get("/followers/{user_id}", response_model=List[FollowerFollowingResponse])
 def get_followers(user_id: int, db: Session = Depends(get_db)):
     followers = (
-        db.query(User.id, User.display_name, User.profile_picture)
+        db.query(User.id, User.firebase_uid, User.display_name, User.avatar_url)
         .join(Follow, Follow.follower_id == User.id)
         .filter(Follow.following_id == user_id)
         .all()
@@ -91,7 +91,7 @@ def get_followers(user_id: int, db: Session = Depends(get_db)):
 @router.get("/following/{user_id}", response_model=List[FollowerFollowingResponse])
 def get_following(user_id: int, db: Session = Depends(get_db)):
     following = (
-        db.query(User.id, User.display_name, User.profile_picture)
+        db.query(User.id, User.firebase_uid, User.display_name, User.avatar_url)
         .join(Follow, Follow.following_id == User.id)
         .filter(Follow.follower_id == user_id)
         .all()
