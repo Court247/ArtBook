@@ -1,6 +1,29 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## [1.0.14]
+
+### Fixed
+- `routers/router_admin.py`
+  - Added missing `from models.model_post import Post` import — previously `GET /admin/posts` and `GET /admin/flagged-posts` crashed with a `NameError` on every request
+
+- `routers/router_follow.py`
+  - Fixed variable name mismatch in `DELETE /follow/{following_id}` — filter used `follow.following_id` (referencing the SQLAlchemy model class) instead of the path parameter `following_id`, causing a `NameError` crash on every unfollow attempt
+
+- `models/model_notifications.py`
+  - Removed erroneous self-referential `sent_notifications` and `received_notifications` relationships defined directly on the `Notification` model
+  - Removed duplicate `recipient` and `sender` relationship definitions (lines without `back_populates`) that silently overrode the correct definitions, causing unpredictable SQLAlchemy relationship resolution
+
+### Added
+- `schemas/schema_user.py`
+  - Added `validate_display_name` field validator on `UserBase` and `UserUpdate` — strips leading/trailing whitespace, rejects empty names, enforces a 50-character maximum, and rejects names containing HTML special characters (`<`, `>`, `"`, `'`, `&`) to prevent XSS in rendered output
+
+- `schemas/schema_post.py`
+  - Added `validate_content` field validator on `PostBase` and `PostUpdate` — strips whitespace, rejects empty content, and enforces a 2000-character maximum
+  - Added `validate_media_url` field validator on `PostBase` and `PostUpdate` — rejects any `media_url` that is not a valid `http://` or `https://` URL, blocking `javascript:` and other dangerous URI schemes
+
+---
+
 ## [1.0.13]
 
 ### Fixed

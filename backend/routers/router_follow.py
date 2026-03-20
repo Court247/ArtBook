@@ -63,7 +63,7 @@ def unfollow_user(
 ):
     follow = (
         db.query(Follow)
-        .filter(Follow.follower_id == current_user.id, Follow.following_id == follow.following_id)
+        .filter(Follow.follower_id == current_user.id, Follow.following_id == following_id)
         .first()
     )
     if not follow:

@@ -2,9 +2,9 @@
 
 ## Critical Bugs
 
-- [ ] **Fix broken unfollow endpoint** — `router_follow.py:66` has a variable name mismatch that causes a `NameError` crash on `DELETE /follow/{following_id}`
-- [ ] **Fix missing Post import in admin router** — `router_admin.py` uses the `Post` model but never imports it, crashing `GET /admin/posts`
-- [ ] **Fix duplicate relationship definitions in Notification model** — `model_notifications.py` defines `recipient` and `sender` relationships twice, causing unpredictable SQLAlchemy behavior
+- [x] **Fix broken unfollow endpoint** — `router_follow.py:66` has a variable name mismatch that causes a `NameError` crash on `DELETE /follow/{following_id}`
+- [x] **Fix missing Post import in admin router** — `router_admin.py` uses the `Post` model but never imports it, crashing `GET /admin/posts`
+- [x] **Fix duplicate relationship definitions in Notification model** — `model_notifications.py` defines `recipient` and `sender` relationships twice, causing unpredictable SQLAlchemy behavior
 
 ---
 
@@ -31,10 +31,10 @@
 
 ## Input Validation
 
-- [ ] **Add content length validation to posts** — no min/max length enforced in schema
+- [x] **Add content length validation to posts** — no min/max length enforced in schema
 - [ ] **Add content validation to comments** — empty comments and excessively long comments are allowed
-- [ ] **Add display name length validation to user schema** — no min/max on `display_name`
-- [ ] **Validate media URLs** — `media_url` on posts accepts any string with no URL format check
+- [x] **Add display name length validation to user schema** — no min/max on `display_name`
+- [x] **Validate media URLs** — `media_url` on posts accepts any string with no URL format check
 
 ---
 

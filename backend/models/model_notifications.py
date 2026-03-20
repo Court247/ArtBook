@@ -16,8 +16,6 @@ class Notification(Base):
     repost_id = Column(Integer, ForeignKey("reposts.id", ondelete="CASCADE"), nullable=True)    
     message = Column(Text, nullable=True)
     is_read = Column(Boolean, default=False)
-    sent_notifications = relationship("Notification", back_populates="sender")
-    received_notifications = relationship("Notification", back_populates="recipient")
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
     # relationships
@@ -26,5 +24,3 @@ class Notification(Base):
     post = relationship("Post", back_populates="notifications")
     comment = relationship("Comment", back_populates="notifications")
     repost = relationship("Repost", back_populates="notifications")
-    recipient = relationship("User", foreign_keys=[recipient_id]) 
-    sender = relationship("User", foreign_keys=[sender_id])   
