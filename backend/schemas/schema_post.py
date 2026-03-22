@@ -6,7 +6,7 @@ from .schema_user import UserPublic
 
 # ---------- Minimal user info used in feed or nested data ----------
 class FeedUser(BaseModel):
-    id: int                      # ✅ auto-increment primary key
+    id: int                      
     firebase_uid: str
     display_name: str
     avatar_url: Optional[str] = None
@@ -20,7 +20,7 @@ class FeedComment(BaseModel):
     id: int
     content: str
     created_at: datetime
-    user: FeedUser               # ✅ now includes user's int ID
+    user: FeedUser               
 
     class Config:
         from_attributes = True
@@ -33,7 +33,7 @@ class FeedPostResponse(BaseModel):
     media_url: Optional[str]
     visibility: str
     created_at: datetime
-    author: FeedUser             # ✅ nested user with int ID
+    author: FeedUser             
     likes_count: int
     comments_count: int
     liked_by_current_user: bool

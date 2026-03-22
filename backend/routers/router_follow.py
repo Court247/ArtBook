@@ -40,7 +40,7 @@ def follow_user(
     db.commit()
     db.refresh(db_follow)
 
-    # ✅ Trigger notification
+    #Trigger notification
     create_notification(
         db,
         sender_id=current_user.id,

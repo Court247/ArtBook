@@ -30,30 +30,30 @@ def toggle_like(
     if not post:
         raise HTTPException(status_code=404, detail="Post not found")
 
-    # 🔍 Check if already liked (POST ONLY)
+    # Check if already liked (POST ONLY)
     existing = db.query(Like).filter(
         Like.post_id == post_id,
         Like.user_id == current_user.id
     ).first()
 
-    # 🔄 Unlike
+    # Unlike
     if existing:
         db.delete(existing)
         db.commit()
         return {"liked": False}
 
-    # ✅ Like post
+    # Like post
     new_like = Like(
         user_id=current_user.id,
         post_id=post_id,
-        repost_id=None  # 👈 explicitly NOT a repost like
+        repost_id=None 
     )
 
     db.add(new_like)
     db.commit()
     db.refresh(new_like)
 
-    # 🔔 Notify post owner
+    # Notify post owner
     if post.user_id != current_user.id:
         create_notification(
             db,
@@ -81,30 +81,30 @@ def toggle_repost_like(
     if not repost:
         raise HTTPException(status_code=404, detail="Repost not found")
 
-    # 🔍 Check if already liked (REPOST ONLY)
+    # Check if already liked (REPOST ONLY)
     existing = db.query(Like).filter(
         Like.repost_id == repost_id,
         Like.user_id == current_user.id
     ).first()
 
-    # 🔄 Unlike
+    # Unlike
     if existing:
         db.delete(existing)
         db.commit()
         return {"liked": False}
 
-    # ✅ Like repost (NO post_id involved)
+    # Like repost (NO post_id involved)
     new_like = Like(
         user_id=current_user.id,
         repost_id=repost_id,
-        post_id=None  # 👈 explicitly NOT a post like
+        post_id=None  # explicitly NOT a post like
     )
 
     db.add(new_like)
     db.commit()
     db.refresh(new_like)
 
-    # 🔔 Notify repost owner ONLY
+    # Notify repost owner ONLY
     if repost.user_id != current_user.id:
         create_notification(
             db,

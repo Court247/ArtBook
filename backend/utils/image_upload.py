@@ -2,7 +2,7 @@ import firebase_admin
 from firebase_admin import storage
 from uuid import uuid4
 
-# Initialize in firebase_auth.py — just make sure it's called before this
+# Initialize in firebase_auth.py 
 bucket = storage.bucket()
 
 def upload_image_file(file, folder="posts"):

@@ -45,7 +45,7 @@ def create_repost(
     db.commit()
     db.refresh(repost)
 
-    # ✅ Trigger notification
+    # Trigger notification
     create_notification(
         db,
         sender_id=current_user.id,

@@ -24,7 +24,6 @@ class UserBase(BaseModel):
 
 class UserCreate(UserBase):
     firebase_uid: str
-    # optional role during create (creator should not be self-assigned normally)
     role: Optional[RoleEnum] = RoleEnum.regular
 
 class UserUpdate(BaseModel):
@@ -44,7 +43,6 @@ class UserResponse(BaseModel):
     created_at: Optional[datetime] = None
 
     class Config:
-        # Pydantic v2 compatibility: allow reading attributes off ORM objects
         from_attributes = True
 
 class UserPublic(BaseModel):

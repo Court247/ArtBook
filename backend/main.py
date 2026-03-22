@@ -4,7 +4,6 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from db.database import Base, engine
 
-# Import ALL models so Base.metadata knows every table
 from models import (
     model_users,
     model_post,
@@ -40,9 +39,9 @@ app.add_middleware(
 )
 
 # Init Firebase AFTER middleware
-import utils.firebase_auth  # noqa: F401
+import utils.firebase_auth  
 
-# Dev convenience (creates missing tables)
+# Create missing tables
 Base.metadata.create_all(bind=engine)
 
 # Routers

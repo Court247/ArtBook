@@ -4,7 +4,7 @@ from typing import Optional
 
 class RepostCreate(BaseModel):
     original_post_id: int
-    quote: Optional[str] = None  # optional quote text
+    quote: Optional[str] = None  
 
 class RepostResponse(BaseModel):
     id: int

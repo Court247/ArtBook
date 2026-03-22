@@ -125,7 +125,7 @@ CREATE TABLE notifications (
 -- ===========================
 -- REPOST TABLE
 -- ===========================
--- ✅ REPOSTS TABLE
+-- REPOSTS TABLE
 CREATE TABLE reposts (
     id INT AUTO_INCREMENT PRIMARY KEY,
     user_id INT NOT NULL,

@@ -21,16 +21,14 @@ def set_admin(uid: str, is_admin: bool = True):
         user = auth.get_user(uid)
         custom = user.custom_claims or {}
         if custom.get("creator", False):
-            print("❌ Cannot modify creator account")
+            print("Cannot modify creator account")
             return
         # preserve existing creator flag (safe when custom is {})
         creator_flag = custom.get("creator", False)
         auth.set_custom_user_claims(uid, {"admin": is_admin, "creator": creator_flag})
         status = "admin" if is_admin else "regular user"
-        print(f"✅ User {uid} is now an {status} in Firebase claims.")
+        print(f"User {uid} is now an {status} in Firebase claims.")
 
-        # Optional: propagate change to your backend DB so routers (DB source-of-truth) stay in sync.
-        # Requires an API endpoint (creator-only) or admin token. Configure BACKEND_URL and ADMIN_API_KEY env vars.
         backend_url = os.getenv("BACKEND_URL")
         admin_key = os.getenv("ADMIN_API_KEY")
         if backend_url and admin_key:
@@ -44,16 +42,16 @@ def set_admin(uid: str, is_admin: bool = True):
                     timeout=5,
                 )
                 if resp.ok:
-                    print("✅ DB roles synced.")
+                    print("DB roles synced.")
                 else:
-                    print(f"⚠️ DB sync failed: {resp.status_code} {resp.text}")
+                    print(f"DB sync failed: {resp.status_code} {resp.text}")
             except Exception as e:
-                print(f"⚠️ DB sync request failed: {e}")
+                print(f"DB sync request failed: {e}")
 
     except UserNotFoundError:
-        print(f"❌ No user found with UID: {uid}")
+        print(f"No user found with UID: {uid}")
     except Exception as e:
-        print(f"❌ Failed to update claims: {e}")
+        print(f"Failed to update claims: {e}")
 
 
 if __name__ == "__main__":
